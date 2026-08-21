@@ -1,33 +1,33 @@
 {% extends 'admin_custom/base_admin.html' %}
 
 {% block content %}
-    <h1>Service Details</h1>
-    
+    <h1>Service Detail Specifications</h1>
+
     <form method="GET" class="search-bar">
-        <input type="text" name="q" value="{{ query }}" placeholder="Search category, contact..." />
-        <button type="submit" class="btn btn-primary">Search</button>
+        <input type="text" name="q" value="{{ query }}" placeholder="Search category, contact..." style="min-width:320px;" />
+        <button type="submit" class="btn btn-primary">Search Details</button>
         {% if query %}
-            <a href="{% url 'admin_service_details_list' %}" class="btn btn-secondary">Clear</a>
+            <a href="{% url 'admin_service_details_list' %}" class="btn btn-secondary">Clear Filter</a>
         {% endif %}
     </form>
-    
+
     <div class="table-container">
         <table>
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>Detail ID</th>
                     <th>Category</th>
-                    <th>Priority</th>
-                    <th>Pref. Date</th>
-                    <th>Pref. Time</th>
-                    <th>Contact</th>
+                    <th>Priority Level</th>
+                    <th>Preferred Date</th>
+                    <th>Time Slot</th>
+                    <th>Contact Phone</th>
                 </tr>
             </thead>
             <tbody>
                 {% for detail in page_obj %}
                 <tr>
-                    <td>#{{ detail.id }}</td>
-                    <td>{{ detail.service_category }}</td>
+                    <td><strong style="color:#2563eb;">#DET-{{ detail.id }}</strong></td>
+                    <td><strong>{{ detail.service_category }}</strong></td>
                     <td>
                         {% if detail.priority == 'High' or detail.priority == 'Emergency' %}
                             <span class="badge badge-danger">{{ detail.priority }}</span>
@@ -40,19 +40,19 @@
                     <td>{{ detail.contact_number }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6">No service details found.</td></tr>
+                <tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:32px;">No service details found.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    
+
     <div class="pagination">
         {% if page_obj.has_previous %}
             <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Prev</a>
         {% endif %}
-        
+
         <span class="active">{{ page_obj.number }}</span>
-        
+
         {% if page_obj.has_next %}
             <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next</a>
         {% endif %}
