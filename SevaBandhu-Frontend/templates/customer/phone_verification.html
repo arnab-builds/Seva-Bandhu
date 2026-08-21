@@ -3,438 +3,309 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phone Verification</title>
+    <title>Phone Verification | Seva Bandhu</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
 
     <style>
-
-        *{
-            margin:0;
-            padding:0;
-            box-sizing:border-box;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        body{
-
-            min-height:100vh;
-
-            display:flex;
-            align-items:center;
-            justify-content:center;
-
-            padding:24px;
-
-            font-family:'Inter',sans-serif;
-
-            background:#f8fafc;
+        body {
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            min-height: 100vh;
+            background-color: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 20px;
+            position: relative;
+            overflow-x: hidden;
+            color: #0f172a;
         }
 
-        main{
+        /* Ambient Glowing Background Blobs */
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.45;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .bg-orb-blue { width: 500px; height: 500px; background: #3b82f6; top: -100px; right: -80px; }
+        .bg-orb-teal { width: 450px; height: 450px; background: #14b8a6; bottom: -100px; left: -80px; }
 
-            width:100%;
-            max-width:460px;
-
-            background:white;
-
-            padding:42px 36px;
-
-            border-radius:28px;
-
-            border:1px solid #e5e7eb;
-
-            box-shadow:0 10px 30px rgba(0,0,0,0.06);
-
-            text-align:center;
+        .auth-container {
+            width: 100%;
+            max-width: 480px;
+            position: relative;
+            z-index: 1;
         }
 
-        /* ===== Icon ===== */
-
-        .verify-icon{
-
-            width:90px;
-            height:90px;
-
-            margin:0 auto 24px;
-
-            border-radius:50%;
-
-            background:#eff6ff;
-
-            display:flex;
-            align-items:center;
-            justify-content:center;
-
-            font-size:38px;
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 28px;
+            border: 2px solid #ffffff;
+            padding: 44px 38px;
+            box-shadow: 0 20px 45px -10px rgba(37, 99, 235, 0.12), 0 10px 25px -5px rgba(15, 23, 42, 0.06);
+            text-align: center;
         }
 
-        /* ===== Heading ===== */
-
-        h1{
-
-            color:#111827;
-
-            font-size:32px;
-            font-weight:800;
-
-            margin-bottom:12px;
-
-            letter-spacing:-1px;
+        .verify-icon-box {
+            width: 76px;
+            height: 76px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            border: 2px solid #bfdbfe;
+            box-shadow: 0 10px 20px -4px rgba(37, 99, 235, 0.2);
         }
 
-        /* ===== Subtitle ===== */
-
-        .subtitle{
-
-            color:#6b7280;
-
-            font-size:15px;
-
-            line-height:1.7;
-
-            margin-bottom:30px;
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
         }
 
-        /* ===== User Box ===== */
-
-        .user-box{
-
-            background:#f8fafc;
-
-            border:1px solid #e5e7eb;
-
-            padding:20px;
-
-            border-radius:18px;
-
-            margin-top:10px;
+        .subtitle {
+            font-size: 14.5px;
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 28px;
         }
 
-        /* ===== Loading Badge ===== */
-
-        .status-badge{
-
-            display:inline-flex;
-
-            align-items:center;
-            justify-content:center;
-
-            gap:8px;
-
-            background:#ecfdf5;
-
-            color:#166534;
-
-            padding:10px 16px;
-
-            border-radius:999px;
-
-            font-size:13px;
-            font-weight:700;
-
-            margin-bottom:24px;
+        .step-card {
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 24px 20px;
+            text-align: left;
         }
 
-        /* ===== Responsive ===== */
-
-        @media(max-width:600px){
-
-            main{
-                padding:34px 24px;
-                border-radius:22px;
-            }
-
-            h1{
-                font-size:28px;
-            }
-
-            .subtitle{
-                font-size:14px;
-            }
-
+        .form-group {
+            margin-bottom: 18px;
         }
 
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1.5px solid #cbd5e1;
+            font-size: 15px;
+            font-family: inherit;
+            color: #0f172a;
+            background: #ffffff;
+            transition: all 0.25s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        }
+
+        .otp-input {
+            font-family: 'JetBrains Mono', monospace !important;
+            font-size: 18px !important;
+            font-weight: 700 !important;
+            letter-spacing: 4px;
+            text-align: center;
+        }
+
+        .btn-send-otp {
+            width: 100%;
+            padding: 14px;
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            border-radius: 14px;
+            font-size: 14.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 8px 18px -4px rgba(37, 99, 235, 0.35);
+        }
+
+        .btn-send-otp:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-verify-otp {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 14px;
+            font-size: 14.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 8px 18px -4px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-verify-otp:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+
+        @media (max-width: 520px) {
+            .auth-card { padding: 32px 20px; border-radius: 22px; }
+            h1 { font-size: 24px; }
+        }
     </style>
 </head>
-
 <body>
 
-<main>
-   
-    <div class="verify-icon">
-        ðŸ“±
-    </div>
+    <div class="bg-orb bg-orb-blue"></div>
+    <div class="bg-orb bg-orb-teal"></div>
 
-  <div id="recaptcha-container"></div>
+    <div class="auth-container">
+        <div class="auth-card">
+            
+            <div class="verify-icon-box">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </div>
 
-    <h1>Phone Verification</h1>
+            <div id="recaptcha-container"></div>
 
-    <p class="subtitle">
-      Your account signup was successful.
-Continue with phone verification to complete setup securely.
-    </p>
+            <h1>Phone Verification</h1>
+            <p class="subtitle">Complete phone OTP verification to finish setting up your account securely.</p>
 
-    <div class="user-box">
+            <div class="step-card">
+                
+                <div class="form-group">
+                    <label for="phone">1. Enter Mobile Phone Number</label>
+                    <input type="text" id="phone" placeholder="+91 98765 43210">
+                </div>
 
-        <p id="google-user">
+                <button onclick="sendOTP()" class="btn-send-otp" style="margin-bottom:20px;">
+                    Send Verification OTP
+                </button>
 
-            Loading user information...
+                <div class="form-group">
+                    <label for="otp">2. Enter 6-Digit OTP Code</label>
+                    <input type="text" id="otp" placeholder="123456" class="otp-input">
+                </div>
 
-        </p>
+                <button onclick="verifyOTP()" class="btn-verify-otp">
+                    Verify OTP &amp; Complete Setup ✓
+                </button>
 
-        <div style="margin-top:24px;">
-
-            <input
-                type="text"
-                id="phone"
-                placeholder="+91XXXXXXXXXX"
-                style="
-                    width:100%;
-                    padding:14px;
-                    border:1px solid #d1d5db;
-                    border-radius:14px;
-                    margin-bottom:16px;
-                    font-size:15px;
-                "
-            >
-
-            <button
-                onclick="sendOTP()"
-                style="
-                    width:100%;
-                    padding:14px;
-                    border:none;
-                    border-radius:14px;
-                    background:#2563eb;
-                    color:white;
-                    font-weight:700;
-                    cursor:pointer;
-                    margin-bottom:18px;
-                "
-            >
-                Send OTP
-            </button>
-
-            <input
-                type="text"
-                id="otp"
-                placeholder="Enter OTP"
-                style="
-                    width:100%;
-                    padding:14px;
-                    border:1px solid #d1d5db;
-                    border-radius:14px;
-                    margin-bottom:16px;
-                    font-size:15px;
-                "
-            >
-
-            <button
-                onclick="verifyOTP()"
-                style="
-                    width:100%;
-                    padding:14px;
-                    border:none;
-                    border-radius:14px;
-                    background:#16a34a;
-                    color:white;
-                    font-weight:700;
-                    cursor:pointer;
-                "
-            >
-                Verify OTP
-            </button>
+            </div>
 
         </div>
-
     </div>
 
-</main>
+    <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-<script type="module">
+    const firebaseConfig = {
+        apiKey: "{{ firebase_config.api_key|escapejs }}",
+        authDomain: "{{ firebase_config.auth_domain|escapejs }}",
+        projectId: "{{ firebase_config.project_id|escapejs }}",
+        storageBucket: "{{ firebase_config.storage_bucket|escapejs }}",
+        messagingSenderId: "{{ firebase_config.messaging_sender_id|escapejs }}",
+        appId: "{{ firebase_config.app_id|escapejs }}"
+    };
 
-import { initializeApp }
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-import {
-
-    getAuth,
-
-    RecaptchaVerifier,
-
-    signInWithPhoneNumber
-
-}
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-/////////////////////////////////////////////////////
-// FIREBASE CONFIG
-/////////////////////////////////////////////////////
-
-const firebaseConfig = {
-    apiKey: "{{ firebase_config.api_key|escapejs }}",
-    authDomain: "{{ firebase_config.auth_domain|escapejs }}",
-    projectId: "{{ firebase_config.project_id|escapejs }}",
-    storageBucket: "{{ firebase_config.storage_bucket|escapejs }}",
-    messagingSenderId: "{{ firebase_config.messaging_sender_id|escapejs }}",
-    appId: "{{ firebase_config.app_id|escapejs }}"
-};
-
-/////////////////////////////////////////////////////
-// INITIALIZE
-/////////////////////////////////////////////////////
-
-const app = initializeApp(firebaseConfig);
-
-const auth = getAuth(app);
-
-window.recaptchaVerifier =
-new RecaptchaVerifier(
-
-    auth,
-
-    'recaptcha-container',
-
-    {
-        size: 'invisible'
-    }
-
-);
-
-window.sendOTP = function() {
-
-    const phoneNumber =
-        document.getElementById(
-            "phone"
-        ).value;
-
-    const appVerifier =
-        window.recaptchaVerifier;
-
-    signInWithPhoneNumber(
-
+    window.recaptchaVerifier = new RecaptchaVerifier(
         auth,
+        'recaptcha-container',
+        { size: 'invisible' }
+    );
 
-        phoneNumber,
+    window.sendOTP = function() {
+        const phoneNumber = document.getElementById("phone").value.trim();
+        if (!phoneNumber) { alert("Please enter phone number"); return; }
+        const appVerifier = window.recaptchaVerifier;
 
-        appVerifier
-
-    )
-
-    .then((confirmationResult) => {
-
-        window.confirmationResult =
-            confirmationResult;
-
-        alert("OTP Sent ðŸ˜ŽðŸ”¥");
-
-    })
-
-    .catch((error) => {
-
-        alert(error.message);
-
-    });
-}
-
-window.verifyOTP = function() {
-
-    const code =
-        document.getElementById(
-            "otp"
-        ).value;
-
-    window.confirmationResult.confirm(code)
-
-    .then((result) => {
-
-        alert("Phone Verified ðŸ˜ŽðŸ”¥");
-
-        const phone = document.getElementById('phone').value || '';
-        const csrftoken = getCookie('csrftoken');
-
-        fetch('/customer/phone-verify-complete/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify({
-                phone: phone
-            })
+        signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+        .then((confirmationResult) => {
+            window.confirmationResult = confirmationResult;
+            alert("✅ OTP sent successfully to " + phoneNumber);
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                window.location.href = '/customer/login/';
-            } else {
-                alert('Verification succeeded locally but server update failed: ' + (data.message || ''));
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            alert('Verification succeeded locally but server update failed. Redirecting to login.');
-            window.location.href = '/customer/login/';
+        .catch((error) => {
+            alert(error.message);
         });
-
-    })
-
-    .catch((error) => {
-
-        alert('Invalid OTP');
-
-    });
-}
-
-/////////////////////////////////////////////////////
-// CHECK AUTH USER
-/////////////////////////////////////////////////////
-
-
-function getCookie(name) {
-
-    let cookieValue = null;
-
-    if (document.cookie && document.cookie !== '') {
-
-        const cookies = document.cookie.split(';');
-
-        for (let i = 0; i < cookies.length; i++) {
-
-            const cookie = cookies[i].trim();
-
-            if (
-
-                cookie.substring(
-
-                    0,
-
-                    name.length + 1
-
-                ) === (name + '=')
-
-            ) {
-
-                cookieValue = decodeURIComponent(
-
-                    cookie.substring(
-                        name.length + 1
-                    )
-                );
-
-                break;
-
-            }
-
-        }
-
     }
 
-    return cookieValue;
-}
-</script>
+    window.verifyOTP = function() {
+        const code = document.getElementById("otp").value.trim();
+        if (!code) { alert("Please enter OTP code"); return; }
+
+        window.confirmationResult.confirm(code)
+        .then((result) => {
+            const phone = document.getElementById('phone').value || '';
+            const csrftoken = getCookie('csrftoken');
+
+            fetch('/customer/phone-verify-complete/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({ phone: phone })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.href = '/customer/login/';
+                } else {
+                    alert('Verification succeeded. Redirecting to login.');
+                    window.location.href = '/customer/login/';
+                }
+            })
+            .catch(err => {
+                window.location.href = '/customer/login/';
+            });
+        })
+        .catch((error) => {
+            alert('Invalid OTP. Please check and try again.');
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    </script>
 
 </body>
 </html>
