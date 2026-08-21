@@ -29,17 +29,17 @@
             color: #0f172a;
         }
 
-        /* Ambient Glowing Background Blobs for Technician (Orange / Coral) */
+        /* Ambient Glowing Background Blobs */
         .bg-orb {
             position: absolute;
             border-radius: 50%;
             filter: blur(90px);
-            opacity: 0.45;
+            opacity: 0.5;
             pointer-events: none;
             z-index: 0;
         }
-        .bg-orb-coral { width: 480px; height: 480px; background: #ff6b35; top: -100px; right: -60px; }
-        .bg-orb-amber { width: 420px; height: 420px; background: #f59e0b; bottom: -80px; left: -60px; }
+        .bg-orb-blue { width: 450px; height: 450px; background: #3b82f6; top: -100px; right: -50px; }
+        .bg-orb-indigo { width: 400px; height: 400px; background: #6366f1; bottom: -80px; left: -60px; }
 
         .auth-container {
             width: 100%;
@@ -55,7 +55,7 @@
             border-radius: 28px;
             border: 2px solid #ffffff;
             padding: 44px 38px;
-            box-shadow: 0 20px 45px -10px rgba(255, 107, 53, 0.14), 0 10px 25px -5px rgba(15, 23, 42, 0.06);
+            box-shadow: 0 20px 45px -10px rgba(37, 99, 235, 0.12), 0 10px 25px -5px rgba(15, 23, 42, 0.06);
         }
 
         .auth-header {
@@ -75,13 +75,13 @@
             width: 42px;
             height: 42px;
             border-radius: 14px;
-            background: linear-gradient(135deg, #ff6b35 0%, #ea580c 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             color: #ffffff;
             font-weight: 800;
-            box-shadow: 0 8px 18px -4px rgba(255, 107, 53, 0.4);
+            box-shadow: 0 8px 18px -4px rgba(37, 99, 235, 0.4);
         }
 
         .auth-logo-text {
@@ -93,7 +93,7 @@
         }
 
         .auth-logo-text span {
-            background: linear-gradient(135deg, #ff6b35 0%, #f59e0b 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #ff6b35 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -107,9 +107,9 @@
             font-weight: 700;
             padding: 5px 14px;
             border-radius: 9999px;
-            background: #fff7ed;
-            color: #c2410c;
-            border: 1px solid #ffedd5;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
             margin-bottom: 12px;
         }
 
@@ -171,14 +171,14 @@
         input[type="text"]:focus,
         input[type="password"]:focus {
             outline: none;
-            border-color: #ff6b35;
-            box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.15);
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
         }
 
         .btn-submit {
             width: 100%;
             padding: 15px;
-            background: linear-gradient(135deg, #ff6b35 0%, #ea580c 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             color: #ffffff;
             border: none;
             border-radius: 14px;
@@ -187,7 +187,7 @@
             font-family: inherit;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 10px 24px -4px rgba(255, 107, 53, 0.4);
+            box-shadow: 0 10px 24px -4px rgba(37, 99, 235, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -197,8 +197,8 @@
 
         .btn-submit:hover {
             transform: translateY(-2px);
-            box-shadow: 0 14px 28px -4px rgba(255, 107, 53, 0.55);
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            box-shadow: 0 14px 28px -4px rgba(37, 99, 235, 0.55);
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         }
 
         .error-box {
@@ -224,7 +224,7 @@
         }
 
         .auth-footer a {
-            color: #ea580c;
+            color: #2563eb;
             font-weight: 700;
             text-decoration: none;
         }
@@ -266,8 +266,8 @@
 </head>
 <body>
 
-    <div class="bg-orb bg-orb-coral"></div>
-    <div class="bg-orb bg-orb-amber"></div>
+    <div class="bg-orb bg-orb-blue"></div>
+    <div class="bg-orb bg-orb-indigo"></div>
 
     <div class="auth-container">
         <div class="auth-card">
@@ -285,7 +285,7 @@
                 </div>
 
                 <h2>Technician Portal Login</h2>
-                <p class="subtitle">Access your assigned dispatch jobs, update live arrival status, and track earnings.</p>
+                <p class="subtitle">Access your assigned dispatch jobs, update arrival status, and view earnings.</p>
             </div>
 
             {% if error %}
