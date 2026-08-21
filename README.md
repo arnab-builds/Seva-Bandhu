@@ -39,7 +39,7 @@ SevaBandhu/
 5. Start the backend:
 
    ```powershell
-   python manage.py runserver
+   python manage.py runserver 8001
    ```
 
 The existing interface is served by Django templates. `SevaBandhu-Frontend/` has no standalone application yet; add its own `package.json` and setup instructions there only when that frontend is created.
