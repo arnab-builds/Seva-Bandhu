@@ -1,0 +1,42 @@
+# Environment and credentials
+.env
+.env.*
+!.env.example
+
+# Python
+venv/
+.venv/
+env/
+ENV/
+**/__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Django local/generated files
+backend/db.sqlite3
+backend/db.sqlite3-*
+backend/media/
+backend/staticfiles/
+staticfiles/
+
+# Node
+node_modules/
+dist/
+build/
+.npm/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# Editors and operating systems
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

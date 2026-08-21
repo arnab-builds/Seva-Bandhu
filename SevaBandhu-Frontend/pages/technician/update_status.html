@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Seva Bandhus</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/technician-update_status.css">
+</head>
+
+<body>
+
+<!-- =========================
+     NAVBAR
+========================= -->
+
+<nav class="navbar">
+
+    <a href="#" class="logo">
+
+        <div class="logo-box">
+            SB
+        </div>
+
+        <div class="logo-text">
+            Seva <span>Bandhu</span>
+        </div>
+
+    </a>
+
+    <ul class="nav-links">
+
+        <li>
+            <a href="#">
+                Home
+            </a>
+        </li>
+
+        <li>
+            <a href="#">
+                Customer
+            </a>
+        </li>
+
+        <li>
+            <a href="#">
+                Technician
+            </a>
+        </li>
+
+    </ul>
+
+</nav>
+
+<!-- =========================
+     MAIN CONTENT
+========================= -->
+
+<div class="container">
+
+    <!-- Static frontend preview exported from Django template -->
+
+
+
+
+<div class="status-container">
+
+    <div class="status-card">
+
+        <!-- Header -->
+        <div class="card-header">
+            <h2>Update Job Status</h2>
+            <p>Update the current progress of your assigned job</p>
+        </div>
+
+        <!-- Job Summary -->
+        
+            
+            <div class="job-summary">
+                <p><span>Request ID:</span> #REQâ€”</p>
+                <p><span>Service:</span> â€”</p>
+                <p><span>Customer:</span> â€”</p>
+                <p><span>Location:</span> â€”</p>
+                <p><span>Priority:</span> â€”</p>
+                <p><span>Current Status:</span> 
+                    <span class="status-badge status-assignedstatus-in-progressstatus-completedstatus-pending">
+                        â€”
+                    </span>
+                </p>
+            </div>
+
+            <!-- Status Form -->
+            <form method="post">
+                
+                <input type="hidden" name="job_id" value="â€”">
+
+                <div class="form-group">
+                    <label for="status_â€”">Update Status</label>
+                    <select name="status" id="status_â€”" required>
+                        <option value="">-- Select New Status --</option>
+                        
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                        
+                            <option value="Completed">Completed</option>
+                        
+                            <option value="Completed" selected>Completed</option>
+                        
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="remarks_â€”">Remarks (Optional)</label>
+                    <textarea name="remarks" id="remarks_â€”" placeholder="Add job notes or remarks..."></textarea>
+                </div>
+
+                <!-- Buttons -->
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-update">Update Status</button>
+                    <a href="#" class="btn btn-back">Cancel</a>
+                </div>
+
+            </form>
+
+            
+            <hr class="job-divider">
+            
+
+            
+
+        
+
+        <div class="empty-state">
+            <h3>No jobs assigned yet</h3>
+            <p>Check back later for new assignments and updates.</p>
+        </div>
+
+        
+
+    </div>
+
+</div>
+
+
+
+</div>
+
+<!-- =========================
+     FOOTER
+========================= -->
+
+<footer>
+
+    Ã‚Â© 2026 Seva Bandhu | Technician Service Assigning System
+
+</footer>
+
+</body>
+</html>

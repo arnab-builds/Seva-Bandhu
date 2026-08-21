@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Seva Bandhus</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/customer-create_request.css">
+</head>
+
+<body>
+
+<!-- =========================
+     NAVBAR
+========================= -->
+
+<nav class="navbar">
+
+    <a href="#" class="logo">
+
+        <div class="logo-box">
+            SB
+        </div>
+
+        <div class="logo-text">
+            Seva <span>Bandhu</span>
+        </div>
+
+    </a>
+
+    <ul class="nav-links">
+
+        <li>
+            <a href="#">
+                Home
+            </a>
+        </li>
+
+        <li>
+            <a href="#">
+                Customer
+            </a>
+        </li>
+
+        <li>
+            <a href="#">
+                Technician
+            </a>
+        </li>
+
+    </ul>
+
+</nav>
+
+<!-- =========================
+     MAIN CONTENT
+========================= -->
+
+<div class="container">
+
+    <!-- Static frontend preview exported from Django template -->
+
+
+
+
+<div class="card form-header header-flex">
+
+    <div>
+        <h1>Create Service Request</h1>
+    </div>
+
+    <a href="#" class="dashboard-btn">
+        Go to Dashboard
+    </a>
+
+</div>
+
+<!-- Customer Details Section -->
+
+<div class="card" style="background: #f0f9ff; border-left: 5px solid #2563eb; margin-bottom: 20px;">
+    <h3 style="margin-top: 0;">Your Details</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div>
+            <strong style="color: #64748b; font-size: 12px;">Username</strong><br>
+            <span style="font-size: 16px; color: #1e293b;">â€”</span>
+        </div>
+        <div>
+            <strong style="color: #64748b; font-size: 12px;">Email</strong><br>
+            <span style="font-size: 16px; color: #1e293b;">â€”</span>
+        </div>
+        <div>
+            <strong style="color: #64748b; font-size: 12px;">Contact Number</strong><br>
+            <span style="font-size: 16px; color: #1e293b;">â€”</span>
+        </div>
+    </div>
+</div>
+
+
+<!-- Error Display -->
+
+<div class="card" style="background: #fee; border: 1px solid #fcc; color: #c33; padding: 15px; margin-bottom: 20px; border-radius: 6px;">
+    â€”
+</div>
+
+
+    <form method="post">
+        
+
+        <input
+            type="hidden"
+            name="customer_latitude"
+            id="customer_latitude">
+
+        <input
+            type="hidden"
+            name="customer_longitude"
+            id="customer_longitude">
+
+        <div class="card section-box">
+
+            <h3>Service Details</h3>
+
+            <div class="form-grid">
+
+                <!-- Service type -->
+                <div class="form-group">
+<label>Service Category</label>
+
+<div class="service-select-box">
+
+    <input type="text"
+       id="serviceCategory"
+       name="service_category"
+       placeholder="No service selected"
+       value="â€”"
+       readonly>
+
+    <button type="button"
+            class="choose-service-btn"
+            onclick="window.location.href='#'">
+        Choose Service
+    </button>
+
+</div>
+
+<div class="help-text">
+Choose the category that best describes your issue.
+</div>
+
+</div>
+                <!-- Preferred date -->
+                <div class="form-group">
+                    <label>Preferred Service Date</label>
+                    <input type="date" name="preferred_service_date" required>
+                    <div class="help-text">
+                        Select a convenient service date.
+                    </div>
+                </div>
+
+                <!-- Preferred time -->
+                <div class="form-group">
+                    <label>Preferred Time Slot</label>
+                    <select name="preferred_time_slot" required>
+                        <option value="">Select time slot</option>
+                        <option value="09:00 AM Ã¢â‚¬â€œ 12:00 PM">09:00 AM Ã¢â‚¬â€œ 12:00 PM</option>
+                        <option value="12:00 PM Ã¢â‚¬â€œ 03:00 PM">12:00 PM Ã¢â‚¬â€œ 03:00 PM</option>
+                        <option value="03:00 PM Ã¢â‚¬â€œ 06:00 PM">03:00 PM Ã¢â‚¬â€œ 06:00 PM</option>
+                        <option value="06:00 PM Ã¢â‚¬â€œ 09:00 PM">06:00 PM Ã¢â‚¬â€œ 09:00 PM</option>
+                    </select>
+                </div>
+
+                <!-- Contact number -->
+                <div class="form-group">
+                    <label>Contact Number</label>
+                    <input type="text" name="contact_number" placeholder="+91XXXXXXXXXX" value="â€”" required>
+                    <div class="help-text">
+                        Technician will use this number to contact you.
+                    </div>
+                </div>
+
+                <!-- Problem description -->
+                <div class="form-group full-row">
+                    <label>Problem Description</label>
+                    <textarea name="problem_description" placeholder="Explain the problem in detail..." required></textarea>
+                    <div class="help-text">
+                        Briefly describe the issue so the technician can prepare in advance.
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card section-box">
+
+            <h3>Service Address</h3>
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>House / Flat No.</label>
+                    <input type="text" name="house_flat_no" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Street / Area</label>
+                    <input type="text" name="street_area" required>
+                </div>
+
+                <div class="form-group">
+                    <label>City</label>
+                    <input type="text" name="city" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Pincode</label>
+                    <input type="text" name="pincode" required>
+                </div>
+
+                <div class="form-group full-row">
+                    <label>Additional Landmark (optional)</label>
+                    <input type="text" name="additional_landmark" placeholder="Near hospital, school, etc.">
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card section-box">
+
+            <h3>Urgency & Priority</h3>
+
+            <div class="priority-box">
+
+                <label class="priority-item">
+                    <input type="radio" name="priority" value="Low" required>
+                    Low Priority
+                </label>
+
+                <label class="priority-item">
+                    <input type="radio" name="priority" value="Medium" required checked>
+                    Medium Priority
+                </label>
+
+                <label class="priority-item">
+                    <input type="radio" name="priority" value="High" required>
+                    High Priority
+                </label>
+
+                <label class="priority-item">
+                    <input type="radio" name="priority" value="Emergency" required>
+                    Emergency
+                </label>
+
+            </div>
+
+            <div class="help-text" style="margin-top:8px;">
+                High and emergency requests are processed first.
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="form-grid">
+                <!-- right review section -->
+                <div class="section-box">
+
+                    <h3>Confirmation</h3>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox"> I confirm that the information provided is correct.
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox">
+                            I agree to allow technicians to contact me for service related communication.
+                        </label>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+        <br>
+        <div class="form-group">
+
+            <label>Payment Method</label>
+
+            <select name="payment_method" required>
+                <option value="">Select Payment Option</option>
+                <option value="online">Pay Now (Online)</option>
+                <option value="offline">Pay After Service</option>
+            </select>
+            <div class="help-text">
+                Online payment processes immediately; offline payment is settled after service completion.
+            </div>
+        </div>
+
+        <div class="form-actions">
+
+            <a href="#" class="btn btn-secondary">
+                Cancel
+            </a>
+
+            <button type="submit" class="btn">
+                Submit Service Request
+            </button>
+
+        </div>
+
+        
+
+    </form>
+
+</div>
+
+
+
+
+</div>
+
+<!-- =========================
+     FOOTER
+========================= -->
+
+<footer>
+
+    Ã‚Â© 2026 Seva Bandhu | Technician Service Assigning System
+
+</footer>
+
+    <script src="../../assets/js/customer-create_request.js"></script>
+</body>
+</html>

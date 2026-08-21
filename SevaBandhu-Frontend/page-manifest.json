@@ -1,0 +1,27 @@
+{
+    "generated_from":  "backend/core/templates",
+    "pages":  [
+                  "index.html",
+                  "pages/customer/create_request.html",
+                  "pages/customer/dashboard_c.html",
+                  "pages/customer/invoice.html",
+                  "pages/customer/loader.html",
+                  "pages/customer/login.html",
+                  "pages/customer/logout.html",
+                  "pages/customer/my_requests.html",
+                  "pages/customer/payment.html",
+                  "pages/customer/phone_verification.html",
+                  "pages/customer/service_selection.html",
+                  "pages/customer/signup.html",
+                  "pages/customer/tracking.html",
+                  "pages/technician/complete_profile.html",
+                  "pages/technician/dashboard_t.html",
+                  "pages/technician/login.html",
+                  "pages/technician/logout.html",
+                  "pages/technician/my_job.html",
+                  "pages/technician/navigation.html",
+                  "pages/technician/signup.html",
+                  "pages/technician/update_location.html",
+                  "pages/technician/update_status.html"
+              ]
+}

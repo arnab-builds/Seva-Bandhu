@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Seva Bandhus</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/technician-complete_profile.css">
+</head>
+
+<body>
+
+<!-- =========================
+     NAVBAR
+========================= -->
+
+<nav class="navbar">
+
+    <a href="#" class="logo">
+
+        <div class="logo-box">
+            SB
+        </div>
+
+        <div class="logo-text">
+            Seva <span>Bandhu</span>
+        </div>
+
+    </a>
+
+    <ul class="nav-links">
+
+        <li>
+            <a href="#">
+                Home
+            </a>
+        </li>
+
+        <li>
+            <a href="#">
+                Customer
+            </a>
+        </li>
+
+        <li>
+            <a href="#">
+                Technician
+            </a>
+        </li>
+
+    </ul>
+
+</nav>
+
+<!-- =========================
+     MAIN CONTENT
+========================= -->
+
+<div class="container">
+
+    <!-- Static frontend preview exported from Django template -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    
+    <link rel="stylesheet" href="../../assets/css/technician-complete_profile.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Complete Your Profile</h1>
+
+    <p class="subtitle">
+        Fill in your professional information to start receiving
+        service requests and technician assignments.
+    </p>
+
+    
+
+    <div class="error">
+        â€”
+    </div>
+
+    
+
+    <div class="info-box">
+        <strong>Step 1:</strong> Fill in your professional details below.
+        Name and contact are already filled from your registration.
+    </div>
+
+    <form method="post">
+
+        
+
+        <!-- Name (Read-only) -->
+        <div class="form-group">
+
+            <label for="name">
+                Name
+            </label>
+
+            <input
+                type="text"
+                id="name"
+                name="name"
+                value="â€”"
+                readonly
+                class="field-readonly">
+
+        </div>
+
+        <!-- Contact (Read-only) -->
+        <div class="form-group">
+
+            <label for="contact">
+                Contact
+            </label>
+
+            <input
+                type="text"
+                id="contact"
+                name="contact"
+                value="â€”"
+                readonly
+                class="field-readonly">
+
+        </div>
+
+        <!-- Service Category -->
+        <div class="form-group">
+
+            <label for="service_category">
+                Service Category
+            </label>
+
+            <select id="service_category" name="service_category" required>
+
+                <option value="">
+                    -- Select a category --
+                </option>
+
+                
+
+                    <option value="â€”"
+                        selected>
+
+                        â€”
+
+                    </option>
+
+                
+
+            </select>
+
+        </div>
+
+        <!-- Years of Experience -->
+        <div class="form-group">
+
+            <label for="years_of_experience">
+                Years of Experience
+            </label>
+
+            <input
+                type="number"
+                id="years_of_experience"
+                name="years_of_experience"
+                min="0"
+                max="50"
+                placeholder="Enter your years of experience"
+                value="â€”"
+                required>
+
+        </div>
+
+        <!-- Working Locations -->
+        <div class="form-group">
+
+            <label for="working_locations">
+                Working Cities
+            </label>
+
+            <textarea
+                id="working_locations"
+                name="working_locations"
+                placeholder="Enter cities where you can work (e.g., Delhi, Gurgaon, Noida)"
+                required>â€”</textarea>
+
+            <div class="tip-box">
+                <strong>Tip:</strong> Enter city names separated by commas (,)
+            </div>
+
+        </div>
+
+        <!-- Buttons -->
+        <div class="btn-group">
+
+            <button type="submit" class="btn-submit">
+                Save Profile
+            </button>
+
+            <a href="#" style="text-decoration:none;flex:1;">
+
+                <button type="button" class="btn-cancel" style="width:100%;">
+                    Cancel
+                </button>
+
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+</body>
+</html>
+
+</div>
+
+<!-- =========================
+     FOOTER
+========================= -->
+
+<footer>
+
+    Ã‚Â© 2026 Seva Bandhu | Technician Service Assigning System
+
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Seva Bandhus</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/technician-my_job.css">
+</head>
+
+<body>
+
+<!-- =========================
+     NAVBAR
+========================= -->
+
+<nav class="navbar">
+
+    <a href="#" class="logo">
+
+        <div class="logo-box">
+            SB
+        </div>
+
+        <div class="logo-text">
+            Seva <span>Bandhu</span>
+        </div>
+
+    </a>
+
+    <ul class="nav-links">
+
+        <li>
+            <a href="#">
+                Home
+            </a>
+        </li>
+
+        <li>
+            <a href="#">
+                Customer
+            </a>
+        </li>
+
+        <li>
+            <a href="#">
+                Technician
+            </a>
+        </li>
+
+    </ul>
+
+</nav>
+
+<!-- =========================
+     MAIN CONTENT
+========================= -->
+
+<div class="container">
+
+    <!-- Static frontend preview exported from Django template -->
+
+
+
+
+<div class="my-jobs">
+
+<input
+    type="hidden"
+    name="csrfmiddlewaretoken"
+    value="â€”"
+>
+
+    <!-- Header -->
+    <div class="page-header">
+
+        <div>
+            <h2>My Assigned Jobs</h2>
+            <p>View and manage all your assigned service requests efficiently.</p>
+        </div>
+
+        <a href="#" class="back-btn">
+            Ã¢â€ Â Dashboard
+        </a>
+
+    </div>
+
+    <!-- Jobs Grid -->
+    <div class="jobs-grid">
+
+    
+
+        
+
+        <div class="job-card job-card-assignedin-progresscompletedpending">
+            
+            <div class="job-header">
+
+                <div class="job-id">
+                    Request #â€”
+                </div>
+
+                <span class="status pendingongoingcompletedpending">
+                    â€”
+                </span>
+
+            </div>
+
+            <div class="job-info">
+
+                <p><span>Service:</span> â€”</p>
+
+                <p><span>Customer:</span> â€”</p>
+
+                <p><span>Date:</span> â€”</p>
+
+                <p><span>Time:</span> â€”</p>
+
+                <p><span>City:</span> â€”</p>
+
+                <p><span>Address:</span> â€”</p>
+
+                <p><span>Priority:</span> â€”</p>
+
+                <p><span>Status:</span> â€”</p>
+
+            </div>
+
+            <div class="job-actions">
+
+                <!-- UPDATE STATUS -->
+                <a href="#"
+                   class="action-btn btn-status">
+
+                    Update Status
+
+                </a>
+
+                <!-- START LIVE TRACKING -->
+                <button
+                    id="journey-btn-â€”"
+                    onclick="startJourney('â€”')"
+                    class="action-btn btn-location">
+
+                    Ã°Å¸Å¡â‚¬ Start Journey
+
+                </button>
+        <a href="#">
+
+        <button
+        style="
+        background:#16a34a;
+        color:white;
+        padding:10px 20px;
+        border:none;
+        border-radius:8px;
+        cursor:pointer;
+        margin-left:10px;
+">
+
+Ã°Å¸â€”ÂºÃ¯Â¸Â Open Navigation
+
+</button>
+
+</a>
+            </div>
+
+        </div>
+
+        
+
+    
+
+        <div class="empty-state">
+
+            <h3>No jobs assigned yet</h3>
+
+            <p>
+                Wait for admin to assign you some work and your jobs will appear here.
+            </p>
+
+            <a href="#" class="back-btn">
+                Ã¢â€ Â Back to Dashboard
+            </a>
+
+        </div>
+
+    
+
+    </div>
+
+</div>
+
+
+
+
+
+</div>
+
+<!-- =========================
+     FOOTER
+========================= -->
+
+<footer>
+
+    Ã‚Â© 2026 Seva Bandhu | Technician Service Assigning System
+
+</footer>
+
+    <script src="../../assets/js/technician-my_job.js"></script>
+</body>
+</html>
