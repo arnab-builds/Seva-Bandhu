@@ -273,6 +273,11 @@ input[type="submit"]:hover{
 
             {{ error }}
 
+            {% if pending_email %}
+            <button type="button" id="resend-verification" style="margin-top:10px;display:block;border:0;border-radius:8px;padding:9px 12px;background:#b91c1c;color:#fff;cursor:pointer;">Resend verification email</button>
+            <span id="resend-status" style="display:block;margin-top:8px;"></span>
+            {% endif %}
+
         </div>
 
         {% endif %}
@@ -301,7 +306,26 @@ input[type="submit"]:hover{
 
     </form>
 
+    <p class="subtitle" style="margin-top:22px; margin-bottom:0;">
+        New to Seva Bandhu? <a href="{% url 'customer_signup' %}">Create an account</a>
+    </p>
+
 </div>
+
+{% if pending_email %}
+<script>
+document.getElementById('resend-verification').onclick = async function () {
+    const status = document.getElementById('resend-status');
+    status.textContent = 'Sending…';
+    const response = await fetch('{% url "send_verification_email" %}', {
+        method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+        body: JSON.stringify({email: '{{ pending_email|escapejs }}'})
+    });
+    const data = await response.json();
+    status.textContent = data.message;
+};
+</script>
+{% endif %}
 
 </body>
 </html>

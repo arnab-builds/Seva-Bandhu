@@ -270,8 +270,7 @@
     <h1>Customer Signup</h1>
 
     <p class="subtitle">
-        Create your customer account and easily manage
-        technician service requests in realtime.
+        Create your account once. We will save these details and send a verification link to your email.
     </p>
 
     {% if error %}
@@ -290,6 +289,8 @@
         type="text"
         id="username"
         name="username"
+        value="{{ form_data.username|default:'' }}"
+        autocomplete="username"
         required>
 
     <label for="email">
@@ -306,6 +307,8 @@
         id="email"
 
         name="email"
+        value="{{ form_data.email|default:'' }}"
+        autocomplete="email"
 
         required
 
@@ -341,13 +344,19 @@
            font-weight:600;">
 
     {% if verified_email %}
-
-        <span style="color:green;">
-            ✅ Email verified: {{ verified_email }}
-        </span>
-
+    <span style="color:#15803d;">✓ Email verified: {{ verified_email }}</span>
+    {% else %}
+    Verify your email before completing sign up.
     {% endif %}
 
+    </div>
+
+    <div id="code-area" style="display:none; margin-bottom:20px;">
+        <label for="verification-code">6-digit verification code</label>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <input type="text" id="verification-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="Enter code" style="margin-bottom:0; flex:1;">
+            <button type="button" id="confirm-code-btn" style="width:auto; padding:12px 18px; background:#2563eb; color:white; border-radius:12px;">Confirm</button>
+        </div>
     </div>
 
     <label for="contact">
@@ -358,6 +367,8 @@
         type="text"
         id="contact"
         name="contact"
+        value="{{ form_data.contact|default:'' }}"
+        autocomplete="tel"
         required>
 
     <label for="password">
@@ -368,11 +379,13 @@
         type="password"
         id="password"
         name="password"
+        autocomplete="new-password"
+        minlength="8"
         required>
 
     <button type="submit" class="signup-btn">
 
-        Sign Up
+        Create account &amp; send verification email
 
     </button>
 
@@ -439,7 +452,28 @@ function getCookie(name) {
 }
 
 window.verifyEmail = async function() {
-    const email = document.getElementById("email").value;
+    const email = document.getElementById("email").value.trim();
+    const statusEl = document.getElementById("verify-status");
+    if (!email) { statusEl.innerText = "Enter your email address first."; return; }
+    statusEl.innerText = "Sending verification code…";
+    try {
+        const response = await fetch("{% url 'send_verification_email' %}", {
+            method: "POST", headers: {"Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken")},
+            body: JSON.stringify({email})
+        });
+        const data = await response.json();
+        statusEl.innerText = data.message;
+        if (data.status === "success") {
+            document.getElementById("code-area").style.display = "block";
+            document.getElementById("verification-code").focus();
+        }
+    } catch (_) { statusEl.innerText = "Could not send the code. Please try again."; }
+    return;
+}
+
+/* Legacy link-verification handler intentionally removed. */
+/*
+    const legacyEmail = document.getElementById("email").value;
 
     if (!email) {
         alert("Please enter email first");
@@ -464,6 +498,17 @@ window.verifyEmail = async function() {
 
         if (response.ok && data.status === "success") {
             statusEl.innerText = data.message || "📩 Verification email sent successfully.";
+            if (data.verification_url) {
+                const verificationLink = document.createElement("a");
+                verificationLink.href = data.verification_url;
+                verificationLink.target = "_blank";
+                verificationLink.rel = "noopener";
+                verificationLink.textContent = "Open verification link in a new tab";
+                verificationLink.style.display = "block";
+                verificationLink.style.marginTop = "8px";
+                statusEl.appendChild(verificationLink);
+                statusEl.append(" Keep this signup tab open, then return here after verifying.");
+            }
             document.getElementById("verify-btn").disabled = true;
             document.getElementById("verify-btn").innerText = "Sent";
         } else {
@@ -474,6 +519,28 @@ window.verifyEmail = async function() {
         statusEl.innerText = error?.message || "❌ Failed to send verification email.";
     }
 }
+
+*/
+document.getElementById("confirm-code-btn").addEventListener("click", async function () {
+    const email = document.getElementById("email").value.trim();
+    const code = document.getElementById("verification-code").value.trim();
+    const statusEl = document.getElementById("verify-status");
+    if (code.length !== 6) { statusEl.innerText = "Enter the 6-digit code from your email."; return; }
+    statusEl.innerText = "Checking code…";
+    try {
+        const response = await fetch("{% url 'verify_email_code' %}", {
+            method: "POST", headers: {"Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken")},
+            body: JSON.stringify({email, code})
+        });
+        const data = await response.json();
+        if (data.status === "success") {
+            statusEl.innerHTML = '<span style="color:#15803d;">✓ Email verified</span>';
+            document.getElementById("code-area").style.display = "none";
+            document.getElementById("verify-btn").disabled = true;
+            document.getElementById("email").readOnly = true;
+        } else { statusEl.innerText = data.message; }
+    } catch (_) { statusEl.innerText = "Could not verify the code. Please try again."; }
+});
 
 </script>
 

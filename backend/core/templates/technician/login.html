@@ -244,6 +244,10 @@ input[type="submit"]:hover{
 
         {% csrf_token %}
 
+        {% if error %}
+        <p style="margin-bottom:20px;padding:12px;border-radius:10px;background:#fef2f2;color:#b91c1c;">{{ error }}</p>
+        {% endif %}
+
         <label for="username">
             Username
         </label>
@@ -259,6 +263,10 @@ input[type="submit"]:hover{
         <input type="submit" value="Login">
 
     </form>
+
+    <p class="subtitle" style="margin-top:22px; margin-bottom:0;">
+        New technician? <a href="{% url 'technician_signup' %}">Create an account</a>
+    </p>
 </div>
 
 </body>

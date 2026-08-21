@@ -42,6 +42,7 @@ urlpatterns = [
     path('customer/google-auth/',views.customer_google_auth,name='customer_google_auth'),
     path( 'verify-email/<str:token>/', views.verify_email,name='verify_email'),
    path('send-verification-email/',views.send_verification_email,name='send_verification_email'),
+    path('verify-email-code/', views.verify_email_code, name='verify_email_code'),
     path('customer/phone-verify-complete/', views.customer_phone_verify_complete, name='customer_phone_verify_complete'),
 ]
 

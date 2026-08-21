@@ -44,6 +44,24 @@ SevaBandhu/
 
 The existing interface is served by Django templates. `SevaBandhu-Frontend/` has no standalone application yet; add its own `package.json` and setup instructions there only when that frontend is created.
 
+### Email verification
+
+For real verification emails, set these values in the ignored root `.env` file using your SMTP provider's credentials:
+
+```text
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=your-smtp-host
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_USE_SSL=False
+EMAIL_HOST_USER=your-smtp-username
+EMAIL_HOST_PASSWORD=your-smtp-password-or-app-password
+DEFAULT_FROM_EMAIL=your-verified-sender-address
+PUBLIC_BASE_URL=https://your-public-domain.example
+```
+
+Use either TLS or SSL, not both. With no SMTP host configured, development mode safely shows a local verification link instead of sending a real email.
+
 ## Security notes
 
 - Never commit `.env`, `backend/db.sqlite3`, or `backend/media/`.
