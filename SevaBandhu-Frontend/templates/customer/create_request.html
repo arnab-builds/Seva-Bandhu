@@ -190,6 +190,35 @@
     margin-top: 4px;
 }
 
+/* Location Detect Buttons */
+.address-mode-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.btn-detect-location, .btn-manual-address {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.btn-detect-location:hover, .btn-manual-address:hover {
+    background: #f8fafc;
+}
+.btn-detect-location.active, .btn-manual-address.active {
+    background: #eff6ff;
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
 /* Service Choose Box */
 .service-input-picker {
     display: flex;
@@ -386,7 +415,7 @@
     </div>
     {% endif %}
 
-    <form method="post">
+    <form method="post" onsubmit="const btn=document.getElementById('submitBtn'); btn.disabled=true; btn.innerHTML='Submitting...'; btn.style.opacity='0.7';">
         {% csrf_token %}
 
         <input type="hidden" name="customer_latitude" id="customer_latitude">
@@ -411,7 +440,7 @@
                             <label>Service Category</label>
                             <div class="service-input-picker">
                                 <input type="text" id="serviceCategory" name="service_category" placeholder="No service selected" value="{{ selected_service }}" readonly required>
-                                <button type="button" class="btn-choose-service" onclick="window.location.href='{% url "service_selection" %}'">
+                                <button type="button" class="btn-choose-service" data-url="{% url 'service_selection' %}" onclick="window.location.href=this.getAttribute('data-url')">
                                     Choose Category
                                 </button>
                             </div>
@@ -458,6 +487,17 @@
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                         Service Location Address
                     </h3>
+
+                    <div class="address-mode-selector">
+                        <button type="button" class="btn-detect-location" id="btnDetectAddress" onclick="detectAddress()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                            Auto-Detect Location
+                        </button>
+                        <button type="button" class="btn-manual-address active" id="btnManualAddress" onclick="setManualAddress()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon></svg>
+                            Enter Manually
+                        </button>
+                    </div>
 
                     <div class="form-inputs-grid">
                         <div class="field-group">
@@ -526,7 +566,7 @@
                     </div>
 
                     <div class="actions-footer-row">
-                        <button type="submit" class="btn-submit-request">
+                        <button type="submit" id="submitBtn" class="btn-submit-request">
                             Submit Service Request →
                         </button>
                     </div>
@@ -596,16 +636,79 @@ if (service) {
     document.getElementById("serviceCategory").value = service;
 }
 
-if ("geolocation" in navigator) {
+// Auto-detect will be triggered manually by the user click
+
+function setManualAddress() {
+    document.getElementById("btnDetectAddress").classList.remove("active");
+    document.getElementById("btnManualAddress").classList.add("active");
+    
+    // Clear all fields for manual entry
+    document.querySelector('input[name="city"]').value = "";
+    document.querySelector('input[name="pincode"]').value = "";
+    document.querySelector('input[name="street_area"]').value = "";
+    document.getElementById("customer_latitude").value = "";
+    document.getElementById("customer_longitude").value = "";
+}
+
+async function detectAddress() {
+    const btn = document.getElementById("btnDetectAddress");
+    const manualBtn = document.getElementById("btnManualAddress");
+    
+    manualBtn.classList.remove("active");
+    btn.classList.add("active");
+    
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳ Detecting...';
+    
+    if (!("geolocation" in navigator)) {
+        alert("Geolocation is not supported by your browser.");
+        btn.innerHTML = originalText;
+        setManualAddress();
+        return;
+    }
+
     navigator.geolocation.getCurrentPosition(
-        function(position) {
-            document.getElementById("customer_latitude").value = position.coords.latitude;
-            document.getElementById("customer_longitude").value = position.coords.longitude;
-            console.log("📍 Location captured");
+        async function(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            
+            document.getElementById("customer_latitude").value = lat;
+            document.getElementById("customer_longitude").value = lon;
+            
+            try {
+                // Reverse geocoding using Nominatim (OpenStreetMap)
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                const data = await response.json();
+                
+                if (data && data.address) {
+                    const addr = data.address;
+                    
+                    // Fill City
+                    const city = addr.city || addr.town || addr.village || addr.county || "";
+                    if (city) document.querySelector('input[name="city"]').value = city;
+                    
+                    // Fill Pincode
+                    const pincode = addr.postcode || "";
+                    if (pincode) document.querySelector('input[name="pincode"]').value = pincode;
+                    
+                    // Fill Street/Area
+                    const area = addr.suburb || addr.neighbourhood || addr.road || addr.residential || "";
+                    if (area) document.querySelector('input[name="street_area"]').value = area;
+                }
+            } catch (err) {
+                console.error("Geocoding failed:", err);
+                alert("Could not fetch address details. Please enter manually.");
+            }
+            
+            btn.innerHTML = originalText;
         },
         function(error) {
             console.warn("Location error:", error);
-        }
+            alert("Could not access your location. Please check your browser permissions.");
+            btn.innerHTML = originalText;
+            setManualAddress();
+        },
+        { timeout: 10000 }
     );
 }
 </script>
