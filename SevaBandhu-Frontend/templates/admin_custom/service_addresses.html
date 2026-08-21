@@ -1,0 +1,54 @@
+{% extends 'admin_custom/base_admin.html' %}
+
+{% block content %}
+    <h1>Service Addresses</h1>
+    
+    <form method="GET" class="search-bar">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search city, pincode, area..." />
+        <button type="submit" class="btn btn-primary">Search</button>
+        {% if query %}
+            <a href="{% url 'admin_service_addresses_list' %}" class="btn btn-secondary">Clear</a>
+        {% endif %}
+    </form>
+    
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>House/Flat</th>
+                    <th>Street/Area</th>
+                    <th>City</th>
+                    <th>Pincode</th>
+                    <th>Landmark</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for address in page_obj %}
+                <tr>
+                    <td>#{{ address.id }}</td>
+                    <td>{{ address.house_flat_no }}</td>
+                    <td>{{ address.street_area }}</td>
+                    <td>{{ address.city }}</td>
+                    <td>{{ address.pincode }}</td>
+                    <td>{{ address.additional_landmark|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6">No service addresses found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Prev</a>
+        {% endif %}
+        
+        <span class="active">{{ page_obj.number }}</span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next</a>
+        {% endif %}
+    </div>
+{% endblock %}

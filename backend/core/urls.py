@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import admin_views
 
 # 🔥 ADD THESE
 from django.conf import settings
@@ -44,6 +45,30 @@ urlpatterns = [
    path('send-verification-email/',views.send_verification_email,name='send_verification_email'),
     path('verify-email-code/', views.verify_email_code, name='verify_email_code'),
     path('customer/phone-verify-complete/', views.customer_phone_verify_complete, name='customer_phone_verify_complete'),
+    
+    # --- SUPER ADMIN URLS ---
+    path('admin-login/', admin_views.admin_login_view, name='admin_login'),
+    path('super-admin/logout/', admin_views.admin_logout_view, name='admin_logout'),
+    path('super-admin/', admin_views.admin_dashboard_view, name='admin_dashboard'),
+    
+    path('super-admin/customers/', admin_views.admin_customers_list, name='admin_customers_list'),
+    path('super-admin/customers/<int:id>/', admin_views.admin_customer_detail, name='admin_customer_detail'),
+    path('super-admin/customers/<int:id>/deactivate/', admin_views.admin_customer_deactivate, name='admin_customer_deactivate'),
+    
+    path('super-admin/technicians/', admin_views.admin_technicians_list, name='admin_technicians_list'),
+    path('super-admin/technicians/<int:id>/', admin_views.admin_technician_detail, name='admin_technician_detail'),
+    path('super-admin/technicians/<int:id>/deactivate/', admin_views.admin_technician_deactivate, name='admin_technician_deactivate'),
+    
+    path('super-admin/services/', admin_views.admin_services_list, name='admin_services_list'),
+    path('super-admin/services/add/', admin_views.admin_service_add, name='admin_service_add'),
+    path('super-admin/services/<int:id>/edit/', admin_views.admin_service_edit, name='admin_service_edit'),
+    path('super-admin/services/<int:id>/toggle/', admin_views.admin_service_toggle, name='admin_service_toggle'),
+    path('super-admin/services/<int:id>/delete/', admin_views.admin_service_delete, name='admin_service_delete'),
+    
+    path('super-admin/service-requests/', admin_views.admin_service_requests_list, name='admin_service_requests_list'),
+    path('super-admin/service-addresses/', admin_views.admin_service_addresses_list, name='admin_service_addresses_list'),
+    path('super-admin/service-details/', admin_views.admin_service_details_list, name='admin_service_details_list'),
+    path('super-admin/technician-notifications/', admin_views.admin_notifications_list, name='admin_notifications_list'),
 ]
 
 # 🔥 VERY IMPORTANT — SERVE IMAGES

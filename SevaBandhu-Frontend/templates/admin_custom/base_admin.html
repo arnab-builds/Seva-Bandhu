@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Super Admin | Seva Bandhu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --sidebar-bg: #1e293b;
+            --sidebar-hover: #334155;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+        }
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+        .sidebar-header {
+            padding: 24px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            padding: 16px 0;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .sidebar-nav a {
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 12px 24px;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        .sidebar-nav a:hover {
+            background: var(--sidebar-hover);
+            color: white;
+        }
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .topbar {
+            background: var(--card-bg);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 90;
+        }
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .topbar-right span {
+            font-weight: 500;
+        }
+        .logout-btn {
+            background: var(--danger);
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        .logout-btn:hover { background: #dc2626; }
+        
+        .content-area {
+            padding: 32px;
+            flex-grow: 1;
+        }
+        
+        /* Typography */
+        h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 24px; }
+        h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 16px; }
+        
+        /* Cards & Grids */
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+        }
+        .card-title {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+        .card-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        /* Table */
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            margin-bottom: 24px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th, td {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: #f1f5f9; }
+        
+        /* Forms */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.875rem;}
+        input[type="text"], input[type="number"], input[type="email"], select, input[type="password"] {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+        }
+        input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            font-size: 0.875rem;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-secondary { background: #e2e8f0; color: #334155; }
+        .btn-secondary:hover { background: #cbd5e1; }
+        
+        /* Badges */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-info { background: #e0f2fe; color: #075985; }
+        
+        /* Alerts */
+        .alert {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .alert-warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .search-bar input {
+            max-width: 400px;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 24px;
+        }
+        .pagination a, .pagination span {
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            text-decoration: none;
+            color: var(--text-main);
+        }
+        .pagination .active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            Seva Bandhu Admin
+        </div>
+        <div class="sidebar-nav">
+            <a href="{% url 'admin_dashboard' %}">Dashboard</a>
+            <a href="{% url 'admin_customers_list' %}">Customers</a>
+            <a href="{% url 'admin_technicians_list' %}">Technicians</a>
+            <a href="{% url 'admin_services_list' %}">Services</a>
+            <a href="{% url 'admin_service_requests_list' %}">Service Requests</a>
+            <a href="{% url 'admin_service_addresses_list' %}">Service Addresses</a>
+            <a href="{% url 'admin_service_details_list' %}">Service Details</a>
+            <a href="{% url 'admin_notifications_list' %}">Technician Notifications</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="topbar">
+            <div>
+                <h2>Super Admin Portal</h2>
+            </div>
+            <div class="topbar-right">
+                <span>Welcome, {{ request.user.username }}</span>
+                <a href="{% url 'admin_logout' %}" class="logout-btn">Logout</a>
+            </div>
+        </div>
+
+        <div class="content-area">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+
+</body>
+</html>

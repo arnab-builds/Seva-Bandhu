@@ -1,0 +1,82 @@
+{% extends 'admin_custom/base_admin.html' %}
+
+{% block content %}
+    <h1>Dashboard Overview</h1>
+    
+    <div class="grid-cards">
+        <div class="card">
+            <div class="card-title">Total Customers</div>
+            <div class="card-value">{{ total_customers }}</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Total Technicians</div>
+            <div class="card-value">{{ total_technicians }}</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Services</div>
+            <div class="card-value">{{ active_services }} <span style="font-size: 1rem; color: #64748b;">active</span> / {{ disabled_services }} <span style="font-size: 1rem; color: #64748b;">disabled</span></div>
+        </div>
+        <div class="card">
+            <div class="card-title">Service Requests</div>
+            <div class="card-value">{{ pending_requests }} <span style="font-size: 1rem; color: #64748b;">pending</span> / {{ completed_requests }} <span style="font-size: 1rem; color: #64748b;">done</span></div>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div class="table-container">
+            <h2 style="padding: 16px 24px; margin: 0; border-bottom: 1px solid var(--border);">Recent Requests</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in recent_requests %}
+                    <tr>
+                        <td>#{{ req.id }}</td>
+                        <td>{{ req.customer_username }}</td>
+                        <td>
+                            {% if req.status == 'Completed' %}
+                                <span class="badge badge-success">{{ req.status }}</span>
+                            {% elif req.status == 'Pending' %}
+                                <span class="badge badge-warning">{{ req.status }}</span>
+                            {% elif req.status == 'In Progress' %}
+                                <span class="badge badge-info">{{ req.status }}</span>
+                            {% else %}
+                                <span class="badge badge-info">{{ req.status }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3">No recent requests</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="table-container">
+            <h2 style="padding: 16px 24px; margin: 0; border-bottom: 1px solid var(--border);">Recent Customers</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cust in recent_customers %}
+                    <tr>
+                        <td>{{ cust.username }}</td>
+                        <td>{{ cust.email }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="2">No recent customers</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

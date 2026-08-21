@@ -1,0 +1,87 @@
+{% extends 'admin_custom/base_admin.html' %}
+
+{% block content %}
+    <h1>Service Requests</h1>
+    
+    <form method="GET" class="search-bar" style="margin-bottom: 24px; display: flex; gap: 12px; align-items: center;">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search customer, technician, service..." style="max-width: 300px;">
+        
+        <select name="status" style="width: auto; max-width: 200px;">
+            <option value="">All Statuses</option>
+            <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
+            <option value="Assigned" {% if status_filter == 'Assigned' %}selected{% endif %}>Assigned</option>
+            <option value="In Progress" {% if status_filter == 'In Progress' %}selected{% endif %}>In Progress</option>
+            <option value="Completed" {% if status_filter == 'Completed' %}selected{% endif %}>Completed</option>
+        </select>
+        
+        <button type="submit" class="btn btn-primary">Filter</button>
+        
+        {% if query or status_filter %}
+            <a href="{% url 'admin_service_requests_list' %}" class="btn btn-secondary">Clear</a>
+        {% endif %}
+    </form>
+    
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Service</th>
+                    <th>Customer</th>
+                    <th>Technician</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in page_obj %}
+                <tr>
+                    <td>#{{ req.id }}</td>
+                    <td>{{ req.service_detail.service_category }}</td>
+                    <td><a href="{% url 'admin_customer_detail' req.customer.id %}" style="color: var(--primary); text-decoration: none; font-weight: 500;">{{ req.customer_username }}</a></td>
+                    <td>
+                        {% if req.technician %}
+                            <a href="{% url 'admin_technician_detail' req.technician.id %}" style="color: var(--primary); text-decoration: none; font-weight: 500;">{{ req.technician_username }}</a>
+                        {% else %}
+                            <span style="color: var(--text-muted);">Unassigned</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if req.status == 'Completed' %}
+                            <span class="badge badge-success">{{ req.status }}</span>
+                        {% elif req.status == 'Pending' %}
+                            <span class="badge badge-warning">{{ req.status }}</span>
+                        {% elif req.status == 'Assigned' %}
+                            <span class="badge badge-info">{{ req.status }}</span>
+                        {% else %}
+                            <span class="badge badge-info">{{ req.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="font-size: 0.875rem;">
+                            <strong>₹{{ req.amount }}</strong><br>
+                            <span style="color: var(--text-muted);">{{ req.payment_method|title|default:"N/A" }} - {{ req.payment_status|title }}</span>
+                        </div>
+                    </td>
+                    <td>{{ req.created_at|date:"M d, Y H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7">No service requests found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Prev</a>
+        {% endif %}
+        
+        <span class="active">{{ page_obj.number }}</span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Next</a>
+        {% endif %}
+    </div>
+{% endblock %}

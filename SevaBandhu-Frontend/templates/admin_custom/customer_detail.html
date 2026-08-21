@@ -1,0 +1,72 @@
+{% extends 'admin_custom/base_admin.html' %}
+
+{% block content %}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h1>Customer: {{ customer.username }}</h1>
+        <a href="{% url 'admin_customers_list' %}" class="btn btn-secondary">Back to Customers</a>
+    </div>
+    
+    <div class="card" style="margin-bottom: 32px;">
+        <h2>Profile Information</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div><strong>Email:</strong> {{ customer.email }}</div>
+            <div><strong>Contact:</strong> {{ customer.contact }}</div>
+            <div><strong>Email Verified:</strong> {% if customer.email_verified %}<span class="badge badge-success">Yes</span>{% else %}<span class="badge badge-warning">No</span>{% endif %}</div>
+            <div><strong>Phone Verified:</strong> {% if customer.phone_verified %}<span class="badge badge-success">Yes</span>{% else %}<span class="badge badge-warning">No</span>{% endif %}</div>
+            <div><strong>Status:</strong> 
+                {% if customer.user.is_active %}
+                    <span class="badge badge-success">Active</span>
+                {% else %}
+                    <span class="badge badge-danger">Deactivated</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border);">
+            <form method="POST" action="{% url 'admin_customer_deactivate' customer.id %}">
+                {% csrf_token %}
+                {% if customer.user.is_active %}
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to deactivate this customer? They will not be able to log in, but their historical requests will remain.');">Deactivate Customer</button>
+                {% else %}
+                    <button type="submit" class="btn btn-success">Reactivate Customer</button>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    
+    <h2>Service Requests</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Service</th>
+                    <th>Technician</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                <tr>
+                    <td>#{{ req.id }}</td>
+                    <td>{{ req.service_detail.service_category }}</td>
+                    <td>{{ req.technician_username|default:"Unassigned" }}</td>
+                    <td>
+                        {% if req.status == 'Completed' %}
+                            <span class="badge badge-success">{{ req.status }}</span>
+                        {% elif req.status == 'Pending' %}
+                            <span class="badge badge-warning">{{ req.status }}</span>
+                        {% else %}
+                            <span class="badge badge-info">{{ req.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ req.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">No service requests found for this customer.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
