@@ -1,510 +1,265 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 
 {% block content %}
 
 <!-- LEAFLET CSS -->
-<link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet/dist/leaflet.css"
-/>
-
-<link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"
-/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"/>
 
 <style>
+/* =========================================================
+   Executive Live Tracking System (Corporate UI)
+========================================================= */
 
-/* ===== Main Container ===== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 
-.tracking-container{
-    max-width:1300px;
-    margin:auto;
-    padding:20px;
+.track-container-box {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 20px 64px;
+    font-family: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    color: #0f172a;
+    background-color: #f8fafc;
 }
 
-/* ===== Header ===== */
-
-.tracking-header{
-
-    background:white;
-
-    padding:30px;
-
-    border-radius:24px;
-
-    border:1px solid #e5e7eb;
-
-    box-shadow:0 8px 24px rgba(0,0,0,0.05);
-
-    margin-bottom:24px;
+.track-header-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 24px 32px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
-.tracking-header h2{
-
-    margin:0;
-
-    font-size:32px;
-    font-weight:800;
-
-    color:#111827;
-
-    letter-spacing:-1px;
-
-    margin-bottom:10px;
+.track-header-card h2 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 4px 0;
 }
 
-.tracking-header p{
-
-    color:#6b7280;
-
-    font-size:15px;
-
-    line-height:1.7;
+.track-header-card p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
 }
 
-/* ===== Map ===== */
-
-#map{
-
-    height:760px;
-
-    width:100%;
-
-    border-radius:24px;
-
-    overflow:hidden;
-
-    border:1px solid #e5e7eb;
-
-    box-shadow:0 8px 24px rgba(0,0,0,0.05);
-
-    margin-bottom:24px;
+.btn-back-gray {
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
 }
 
-/* ===== Status Card ===== */
-
-.status-box{
-
-    background:white;
-
-    padding:28px;
-
-    border-radius:24px;
-
-    border:1px solid #e5e7eb;
-
-    box-shadow:0 8px 24px rgba(0,0,0,0.05);
+.btn-back-gray:hover {
+    background: #f1f5f9;
+    color: #0f172a;
 }
 
-/* ===== Live Status ===== */
-
-.status-live{
-
-    display:inline-flex;
-
-    align-items:center;
-
-    gap:10px;
-
-    background:#ecfdf5;
-
-    color:#166534;
-
-    padding:12px 18px;
-
-    border-radius:999px;
-
-    font-weight:700;
-
-    font-size:14px;
-
-    margin-bottom:24px;
+/* Map Frame */
+.map-frame-box {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+    margin-bottom: 24px;
 }
 
-/* ===== Location Info ===== */
-
-.location-grid{
-
-    display:grid;
-
-    grid-template-columns:repeat(2,1fr);
-
-    gap:20px;
+#map {
+    height: 580px;
+    width: 100%;
 }
 
-.location-card{
-
-    background:#f8fafc;
-
-    border:1px solid #e5e7eb;
-
-    border-radius:18px;
-
-    padding:20px;
+/* Live Journey Info Overlay */
+.journey-overlay-badge {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(8px);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.location-label{
-
-    color:#6b7280;
-
-    font-size:13px;
-
-    font-weight:600;
-
-    text-transform:uppercase;
-
-    letter-spacing:0.5px;
-
-    margin-bottom:10px;
+/* Status Card */
+.status-footer-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
-.location-value{
-
-    font-size:22px;
-
-    font-weight:700;
-
-    color:#111827;
-
-    word-break:break-word;
+.signal-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #dcfce7;
+    color: #15803d;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
 }
 
-/* ===== Responsive ===== */
-
-@media(max-width:768px){
-
-    .tracking-header{
-        padding:24px;
-        border-radius:20px;
-    }
-
-    .tracking-header h2{
-        font-size:28px;
-    }
-
-    #map{
-        height:450px;
-        border-radius:20px;
-    }
-
-    .status-box{
-        padding:22px;
-        border-radius:20px;
-    }
-
-    .location-grid{
-        grid-template-columns:1fr;
-    }
-
+@media (max-width: 768px) {
+    #map { height: 420px; }
+    .journey-overlay-badge { font-size: 13.5px; top: 12px; left: 12px; padding: 10px 14px; }
 }
-
-@media(max-width:500px){
-
-    .tracking-container{
-        padding:14px;
-    }
-
-    .tracking-header h2{
-        font-size:24px;
-    }
-
-    .location-value{
-        font-size:18px;
-    }
-
-}
-
 </style>
 
-<div class="tracking-container">
+<div class="track-container-box">
 
     <!-- Header -->
-    <div class="tracking-header">
-
-        <h2>📍 Live Technician Tracking</h2>
-
-        <p>
-            Track your technician in realtime as they travel to your location.
-        </p>
-
+    <div class="track-header-card">
+        <div>
+            <h2>Live Technician Tracking</h2>
+            <p>Real-time location stream for Service Request <strong>#REQ-{{ service_request.id }}</strong></p>
+        </div>
+        <a href="{% url 'customer_my_requests' %}" class="btn-back-gray">
+            ← My Requests
+        </a>
     </div>
-<div id="journey-info"
 
-style="
-background:white;
-padding:15px;
-margin-bottom:15px;
-border-radius:10px;
-font-weight:bold;
-font-size:18px;
-">
+    <!-- Map Container -->
+    <div class="map-frame-box">
+        <div id="journey-info" class="journey-overlay-badge">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            Calculating live route &amp; ETA...
+        </div>
+        <div id="map"></div>
+    </div>
 
-🚗 Calculating route...
-
-</div>
-    <!-- Map -->
-    <div id="map"></div>
-
-    <!-- Status -->
-    <div class="status-box">
-
-        <div class="status-live" id="tracking-status">
-
-            🟡 Connecting to technician...
-
+    <!-- Status Card -->
+    <div class="status-footer-card">
+        <div>
+            <span id="tracking-status" class="signal-status-pill">
+                <span style="width:7px; height:7px; background:#16a34a; border-radius:50%;"></span>
+                Technician Connected &amp; Streaming
+            </span>
         </div>
 
-        
+        <div>
+            <a href="{% url 'customer_dashboard' %}" class="btn-back-gray" style="background:#0f172a; color:#ffffff; border-color:#0f172a;">
+                Return to Dashboard
+            </a>
         </div>
+    </div>
 
 </div>
 
 <!-- LEAFLET JS -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
 <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
 <script>
-
-/////////////////////////////////////////////////////
-// MAP
-/////////////////////////////////////////////////////
-
 const map = L.map('map').setView([22.5726, 88.3639], 13);
 
-L.tileLayer(
-    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    {
-        attribution: '© OpenStreetMap contributors'
-    }
-).addTo(map);
-
-/////////////////////////////////////////////////////
-// TECHNICIAN MARKER
-/////////////////////////////////////////////////////
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+}).addTo(map);
 
 const technicianIcon = L.icon({
-
-    iconUrl:
-    'https://cdn-icons-png.flaticon.com/512/744/744465.png',
-
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/744/744465.png',
     iconSize: [40, 40],
-
     iconAnchor: [20, 20]
-
 });
 
-const technicianMarker = L.marker(
+const technicianMarker = L.marker([0, 0], {
+    icon: technicianIcon,
+    zIndexOffset: 1000
+}).addTo(map).bindPopup("Technician Location");
 
-    [0, 0],
+const customerLat = parseFloat("{{ service_request.customer_latitude }}") || 22.5726;
+const customerLng = parseFloat("{{ service_request.customer_longitude }}") || 88.3639;
 
-    {
-
-        icon: technicianIcon,
-
-        zIndexOffset: 1000
-
-    }
-
-)
-
-.addTo(map)
-
-.bindPopup("🚗 Technician");
-
-/////////////////////////////////////////////////////
-// CUSTOMER LOCATION
-/////////////////////////////////////////////////////
-
-const customerLat = parseFloat(
-    "{{ service_request.customer_latitude }}"
-);
-
-const customerLng = parseFloat(
-    "{{ service_request.customer_longitude }}"
-);
-
-/////////////////////////////////////////////////////
-// CUSTOMER MARKER
-/////////////////////////////////////////////////////
-
-const customerMarker = L.marker(
-
-    [customerLat, customerLng]
-
-)
-
-.addTo(map)
-
-.bindPopup("🏠 Customer Location");
-
-/////////////////////////////////////////////////////
-// ROUTE CONTROL
-/////////////////////////////////////////////////////
+const customerMarker = L.marker([customerLat, customerLng])
+    .addTo(map)
+    .bindPopup("Customer Location");
 
 let routeControl = L.Routing.control({
-createMarker: function() {
-
-    return null;
-
-},
+    createMarker: function() { return null; },
     waypoints: [
-L.latLng(22.5726, 88.3639),
-L.latLng(customerLat, customerLng)
+        L.latLng(22.5726, 88.3639),
+        L.latLng(customerLat, customerLng)
     ],
-
     routeWhileDragging: false,
-
     addWaypoints: false,
-
     draggableWaypoints: false,
-
     fitSelectedRoutes: true,
-
     show: false
+}).addTo(map);
 
-})
+routeControl.on('routesfound', function(e) {
+    const route = e.routes[0];
+    const distance = (route.summary.totalDistance / 1000).toFixed(2);
+    const time = Math.round(route.summary.totalTime / 60);
 
-.addTo(map);
-/////////////////////////////////////////////////////
-// ETA + DISTANCE
-/////////////////////////////////////////////////////
+    document.getElementById('journey-info').innerHTML = 
+        `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> <span><strong>${time} mins away</strong> • ${distance} km distance remaining</span>`;
+});
 
-routeControl.on(
-
-    'routesfound',
-
-    function(e) {
-
-        const route =
-        e.routes[0];
-
-        const distance =
-        (
-            route.summary.totalDistance / 1000
-        ).toFixed(2);
-
-        const time =
-        Math.round(
-            route.summary.totalTime / 60
-        );
-
-        document.getElementById(
-            'journey-info'
-        ).innerHTML =
-
-        `🚗 ${time} mins away • 📍 ${distance} km remaining`;
-
-    }
-
-);
-/////////////////////////////////////////////////////
-// WEBSOCKET
-/////////////////////////////////////////////////////
-
-const wsProtocol =
-    window.location.protocol === "https:"
-    ? "wss://"
-    : "ws://";
-
-const socket = new WebSocket(
-
-    wsProtocol +
-    window.location.host +
-    '/ws/tracking/{{ service_request.id }}/'
-
-);
-
-/////////////////////////////////////////////////////
-// SOCKET CONNECTED
-/////////////////////////////////////////////////////
+const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+const socket = new WebSocket(wsProtocol + window.location.host + '/ws/tracking/{{ service_request.id }}/');
 
 socket.onopen = function() {
-
-   document.getElementById(
-    'tracking-status'
-).innerHTML =
-
-'🟢 Technician Connected';
+    document.getElementById('tracking-status').innerHTML = '<span style="width:7px; height:7px; background:#16a34a; border-radius:50%;"></span> Technician Connected & Live';
 };
 
-/////////////////////////////////////////////////////
-// RECEIVE LIVE GPS
-/////////////////////////////////////////////////////
-
 socket.onmessage = function(event) {
-
     try {
-
         const data = JSON.parse(event.data);
-
-        console.log("📩 LIVE DATA:", data);
-
-        /////////////////////////////////////////////////////
-        // LIVE LOCATION UPDATE
-        /////////////////////////////////////////////////////
-
         if (data.type === "location_update") {
-
             const lat = parseFloat(data.latitude);
-
             const lng = parseFloat(data.longitude);
-
-            console.log("📍 MOVING TO:", lat, lng);
-
-            /////////////////////////////////////////////////////
-            // MOVE MARKER
-            /////////////////////////////////////////////////////
-
             technicianMarker.setLatLng([lat, lng]);
-
             routeControl.setWaypoints([
-
                 L.latLng(lat, lng),
-L.latLng(customerLat, customerLng)
-
+                L.latLng(customerLat, customerLng)
             ]);
-
-            /////////////////////////////////////////////////////
-            // MOVE MAP CAMERA
-            /////////////////////////////////////////////////////
-
             map.panTo([lat, lng]);
-
-            /////////////////////////////////////////////////////
-            // UPDATE TEXT
-            /////////////////////////////////////////////////////
-
-            
         }
-
     } catch (e) {
-
-        console.error("❌ Tracking Error:", e);
-
+        console.error("Tracking Error:", e);
     }
 };
 
-/////////////////////////////////////////////////////
-// SOCKET ERRORS
-/////////////////////////////////////////////////////
-
 socket.onerror = function(error) {
-
-    console.error("❌ SOCKET ERROR:", error);
-
+    console.error("Socket error:", error);
 };
 
 socket.onclose = function() {
-
-    document.getElementById(
-    'tracking-status'
-).innerHTML =
-
-'🔴 Technician Disconnected';
+    document.getElementById('tracking-status').innerHTML = '<span style="width:7px; height:7px; background:#dc2626; border-radius:50%;"></span> Signal Disconnected';
+    document.getElementById('tracking-status').style.background = '#fee2e2';
+    document.getElementById('tracking-status').style.color = '#b91c1c';
 };
-
 </script>
 
 {% endblock %}

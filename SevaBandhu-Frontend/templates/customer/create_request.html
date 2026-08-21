@@ -3,494 +3,611 @@
 {% block content %}
 
 <style>
+/* =========================================================
+   Executive Service Booking Form Theme (Corporate UI)
+========================================================= */
 
-/* ===============================
-   Create Request – Page Styles
-================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 
-.form-wrapper{
-max-width:900px;
-margin:auto;
+.booking-wrapper {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 32px 20px 64px;
+    font-family: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    color: #0f172a;
+    background-color: #f8fafc;
 }
 
-.form-header{
-margin-bottom:25px;
+.booking-header {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 28px 32px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    margin-bottom: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
-/* HEADER LAYOUT (dashboard button right side) */
-.header-flex{
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:20px;
-flex-wrap:wrap;
+.booking-header h1 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    margin: 0 0 4px 0;
 }
 
-.dashboard-btn{
-padding:10px 16px;
-background:#0f766e;
-color:white;
-border-radius:6px;
-text-decoration:none;
-font-size:14px;
-font-weight:600;
-transition:0.25s;
-white-space:nowrap;
+.booking-header p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
 }
 
-.dashboard-btn:hover{
-background:#115e59;
+.btn-back-link {
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
 }
 
-.form-header p{
-color:#64748b;
-font-size:14px;
+.btn-back-link:hover {
+    background: #f1f5f9;
+    color: #0f172a;
 }
 
-/* grid layout */
-.form-grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:20px;
-margin-top:15px;
+/* User Strip */
+.user-strip {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
 }
 
-/* full width rows */
-.full-row{
-grid-column:1 / -1;
+.user-strip-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
-.form-group label{
-display:block;
-font-weight:600;
-margin-bottom:6px;
-color:#334155;
-font-size:14px;
+.user-avatar-sm {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: #0f172a;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.form-group input,
-.form-group select,
-.form-group textarea{
-width:100%;
-padding:10px 12px;
-border-radius:6px;
-border:1px solid #cbd5e1;
-font-size:14px;
-outline:none;
-transition:0.2s;
+.user-text-details strong {
+    display: block;
+    font-size: 14px;
+    color: #0f172a;
 }
 
-.form-group textarea{
-resize:vertical;
-min-height:90px;
+.user-text-details span {
+    font-size: 12.5px;
+    color: #64748b;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus{
-border-color:#2563eb;
-box-shadow:0 0 0 2px rgba(37,99,235,0.15);
+/* Form Layout Grid */
+.form-layout-grid {
+    display: grid;
+    grid-template-columns: 2.2fr 1fr;
+    gap: 28px;
 }
 
-.help-text{
-font-size:12px;
-color:#6b7280;
-margin-top:4px;
+.card-form-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    margin-bottom: 24px;
 }
 
-/* priority badges */
-.priority-box{
-display:flex;
-gap:15px;
-flex-wrap:wrap;
+.card-form-box h3 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 18px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.priority-item{
-display:flex;
-align-items:center;
-gap:8px;
-font-size:14px;
+.form-inputs-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
 }
 
-.priority-item input{
-accent-color:#2563eb;
+.form-full-row {
+    grid-column: 1 / -1;
 }
 
-/* section box */
-.section-box{
-background:#f8fafc;
-border:1px solid #e5e7eb;
-border-radius:8px;
-padding:18px;
+.field-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
 }
 
-/* buttons area */
-.form-actions{
-display:flex;
-gap:15px;
-justify-content:flex-end;
-margin-top:25px;
-flex-wrap:wrap;
+.field-group input[type="text"],
+.field-group input[type="date"],
+.field-group select,
+.field-group textarea {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    font-size: 14px;
+    font-family: inherit;
+    color: #0f172a;
+    transition: all 0.2s ease;
+    outline: none;
+    box-sizing: border-box;
 }
 
-/* information panel */
-.info-panel{
-background:linear-gradient(135deg,#2563eb,#1d4ed8);
-color:white;
-border-radius:8px;
-padding:18px;
+.field-group input:focus,
+.field-group select:focus,
+.field-group textarea:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
-.info-panel h4{
-margin-bottom:8px;
-font-size:18px;
+.field-group textarea {
+    min-height: 95px;
+    resize: vertical;
 }
 
-.info-panel ul{
-margin-left:18px;
-line-height:1.7;
-font-size:14px;
+.field-help-text {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 4px;
 }
 
-/* service select UI */
-
-.service-select-box{
-display:flex;
-gap:10px;
-align-items:center;
+/* Service Choose Box */
+.service-input-picker {
+    display: flex;
+    gap: 10px;
 }
 
-.service-select-box input{
-flex:1;
-padding:10px 12px;
-border-radius:6px;
-border:1px solid #cbd5e1;
-font-size:14px;
-background:#f8fafc;
+.service-input-picker input {
+    flex: 1;
+    background: #f8fafc;
 }
 
-.choose-service-btn{
-padding:10px 16px;
-background:#2563eb;
-color:white;
-border:none;
-border-radius:6px;
-cursor:pointer;
-font-size:14px;
-font-weight:600;
-transition:0.25s;
+.btn-choose-service {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 0 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s ease;
 }
 
-.choose-service-btn:hover{
-background:#1d4ed8;
+.btn-choose-service:hover {
+    background: #1d4ed8;
 }
 
-/* responsive */
-@media(max-width:768px){
-.form-grid{
-grid-template-columns:1fr;
-}
+/* Priority Card Selectors */
+.priority-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
 }
 
+.priority-option-card {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 12px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.priority-option-card:hover {
+    border-color: #94a3b8;
+    background: #f8fafc;
+}
+
+.priority-option-card input {
+    display: none;
+}
+
+.priority-option-card input:checked + .priority-option-label {
+    color: #2563eb;
+    font-weight: 700;
+}
+
+.priority-option-card:has(input:checked) {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+
+.priority-option-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+}
+
+/* Actions Row */
+.actions-footer-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 14px;
+    margin-top: 24px;
+}
+
+.btn-submit-request {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 13px 26px;
+    border-radius: 10px;
+    font-size: 14.5px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2);
+    transition: all 0.2s ease;
+}
+
+.btn-submit-request:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+/* Sidebar Guarantee Box */
+.sidebar-info-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.sidebar-info-card h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 16px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.sidebar-g-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sidebar-g-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.sidebar-g-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sidebar-g-text strong {
+    display: block;
+    font-size: 13.5px;
+    color: #0f172a;
+}
+
+.sidebar-g-text p {
+    font-size: 12px;
+    color: #64748b;
+    margin: 2px 0 0 0;
+}
+
+@media (max-width: 900px) {
+    .form-layout-grid { grid-template-columns: 1fr; }
+    .priority-cards-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+    .form-inputs-grid { grid-template-columns: 1fr; }
+}
 </style>
 
-<div class="card form-header header-flex">
+<div class="booking-wrapper">
 
-    <div>
-        <h1>Create Service Request</h1>
+    <!-- Header -->
+    <div class="booking-header">
+        <div>
+            <h1>Create Service Request</h1>
+            <p>Specify your service details and location address for technician dispatch.</p>
+        </div>
+        <a href="{% url 'customer_dashboard' %}" class="btn-back-link">
+            ← Dashboard
+        </a>
     </div>
 
-    <a href="{% url 'customer_my_requests' %}" class="dashboard-btn">
-        Go to Dashboard
-    </a>
-
-</div>
-
-<!-- Customer Details Section -->
-{% if customer %}
-<div class="card" style="background: #f0f9ff; border-left: 5px solid #2563eb; margin-bottom: 20px;">
-    <h3 style="margin-top: 0;">Your Details</h3>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-        <div>
-            <strong style="color: #64748b; font-size: 12px;">Username</strong><br>
-            <span style="font-size: 16px; color: #1e293b;">{{ customer.username }}</span>
+    <!-- Customer Strip -->
+    {% if customer %}
+    <div class="user-strip">
+        <div class="user-strip-info">
+            <div class="user-avatar-sm">{{ customer.username|upper|first }}</div>
+            <div class="user-text-details">
+                <strong>Booking Account: {{ customer.username }}</strong>
+                <span>{{ customer.email }} • Contact: {{ customer.contact|default:"Provided in Form" }}</span>
+            </div>
         </div>
-        <div>
-            <strong style="color: #64748b; font-size: 12px;">Email</strong><br>
-            <span style="font-size: 16px; color: #1e293b;">{{ customer.email }}</span>
-        </div>
-        <div>
-            <strong style="color: #64748b; font-size: 12px;">Contact Number</strong><br>
-            <span style="font-size: 16px; color: #1e293b;">{{ customer.contact }}</span>
-        </div>
+        <span style="font-size:12px; font-weight:600; color:#15803d; background:#dcfce7; padding:4px 10px; border-radius:6px;">
+            Verified Account
+        </span>
     </div>
-</div>
-{% endif %}
+    {% endif %}
 
-<!-- Error Display -->
-{% if error %}
-<div class="card" style="background: #fee; border: 1px solid #fcc; color: #c33; padding: 15px; margin-bottom: 20px; border-radius: 6px;">
-    {{ error }}
-</div>
-{% endif %}
+    <!-- Error Message -->
+    {% if error %}
+    <div style="background:#fee2e2; border:1px solid #fecaca; color:#b91c1c; padding:14px 18px; border-radius:10px; margin-bottom:24px; font-size:13.5px; font-weight:600;">
+        {{ error }}
+    </div>
+    {% endif %}
 
     <form method="post">
         {% csrf_token %}
 
-        <input
-            type="hidden"
-            name="customer_latitude"
-            id="customer_latitude">
+        <input type="hidden" name="customer_latitude" id="customer_latitude">
+        <input type="hidden" name="customer_longitude" id="customer_longitude">
 
-        <input
-            type="hidden"
-            name="customer_longitude"
-            id="customer_longitude">
+        <div class="form-layout-grid">
 
-        <div class="card section-box">
+            <!-- Left Form Fields Column -->
+            <div>
 
-            <h3>Service Details</h3>
+                <!-- Service Information Box -->
+                <div class="card-form-box">
+                    <h3>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                        Service Specifications
+                    </h3>
 
-            <div class="form-grid">
+                    <div class="form-inputs-grid">
 
-                <!-- Service type -->
-                <div class="form-group">
-<label>Service Category</label>
+                        <!-- Service Category -->
+                        <div class="field-group form-full-row">
+                            <label>Service Category</label>
+                            <div class="service-input-picker">
+                                <input type="text" id="serviceCategory" name="service_category" placeholder="No service selected" value="{{ selected_service }}" readonly required>
+                                <button type="button" class="btn-choose-service" onclick="window.location.href='{% url "service_selection" %}'">
+                                    Choose Category
+                                </button>
+                            </div>
+                            <div class="field-help-text">Select category from available services list.</div>
+                        </div>
 
-<div class="service-select-box">
+                        <!-- Date -->
+                        <div class="field-group">
+                            <label>Preferred Service Date</label>
+                            <input type="date" name="preferred_service_date" required>
+                        </div>
 
-    <input type="text"
-       id="serviceCategory"
-       name="service_category"
-       placeholder="No service selected"
-       value="{{ selected_service }}"
-       readonly>
+                        <!-- Time Slot -->
+                        <div class="field-group">
+                            <label>Preferred Time Slot</label>
+                            <select name="preferred_time_slot" required>
+                                <option value="">Select time slot</option>
+                                <option value="09:00 AM – 12:00 PM">09:00 AM – 12:00 PM</option>
+                                <option value="12:00 PM – 03:00 PM">12:00 PM – 03:00 PM</option>
+                                <option value="03:00 PM – 06:00 PM">03:00 PM – 06:00 PM</option>
+                                <option value="06:00 PM – 09:00 PM">06:00 PM – 09:00 PM</option>
+                            </select>
+                        </div>
 
-    <button type="button"
-            class="choose-service-btn"
-            onclick="window.location.href='{% url "service_selection" %}'">
-        Choose Service
-    </button>
+                        <!-- Contact -->
+                        <div class="field-group form-full-row">
+                            <label>Contact Phone Number</label>
+                            <input type="text" name="contact_number" placeholder="+91XXXXXXXXXX" value="{% if customer %}{{ customer.contact }}{% endif %}" required>
+                            <div class="field-help-text">Technician will reach out on this number upon arrival.</div>
+                        </div>
 
-</div>
+                        <!-- Problem Description -->
+                        <div class="field-group form-full-row">
+                            <label>Detailed Issue Description</label>
+                            <textarea name="problem_description" placeholder="Explain the problem in detail (e.g. AC unit not cooling, leaking faucet)..." required></textarea>
+                        </div>
 
-<div class="help-text">
-Choose the category that best describes your issue.
-</div>
-
-</div>
-                <!-- Preferred date -->
-                <div class="form-group">
-                    <label>Preferred Service Date</label>
-                    <input type="date" name="preferred_service_date" required>
-                    <div class="help-text">
-                        Select a convenient service date.
                     </div>
                 </div>
 
-                <!-- Preferred time -->
-                <div class="form-group">
-                    <label>Preferred Time Slot</label>
-                    <select name="preferred_time_slot" required>
-                        <option value="">Select time slot</option>
-                        <option value="09:00 AM – 12:00 PM">09:00 AM – 12:00 PM</option>
-                        <option value="12:00 PM – 03:00 PM">12:00 PM – 03:00 PM</option>
-                        <option value="03:00 PM – 06:00 PM">03:00 PM – 06:00 PM</option>
-                        <option value="06:00 PM – 09:00 PM">06:00 PM – 09:00 PM</option>
-                    </select>
-                </div>
+                <!-- Address Box -->
+                <div class="card-form-box">
+                    <h3>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        Service Location Address
+                    </h3>
 
-                <!-- Contact number -->
-                <div class="form-group">
-                    <label>Contact Number</label>
-                    <input type="text" name="contact_number" placeholder="+91XXXXXXXXXX" value="{% if customer %}{{ customer.contact }}{% endif %}" required>
-                    <div class="help-text">
-                        Technician will use this number to contact you.
+                    <div class="form-inputs-grid">
+                        <div class="field-group">
+                            <label>House / Flat No.</label>
+                            <input type="text" name="house_flat_no" placeholder="e.g. Flat 402, Block A" required>
+                        </div>
+
+                        <div class="field-group">
+                            <label>Street / Area</label>
+                            <input type="text" name="street_area" placeholder="e.g. Park Street, Sector 2" required>
+                        </div>
+
+                        <div class="field-group">
+                            <label>City</label>
+                            <input type="text" name="city" placeholder="e.g. Kolkata" required>
+                        </div>
+
+                        <div class="field-group">
+                            <label>Pincode</label>
+                            <input type="text" name="pincode" placeholder="e.g. 700091" required>
+                        </div>
+
+                        <div class="field-group form-full-row">
+                            <label>Landmark (Optional)</label>
+                            <input type="text" name="additional_landmark" placeholder="e.g. Near City Hospital">
+                        </div>
                     </div>
                 </div>
 
-                <!-- Problem description -->
-                <div class="form-group full-row">
-                    <label>Problem Description</label>
-                    <textarea name="problem_description" placeholder="Explain the problem in detail..." required></textarea>
-                    <div class="help-text">
-                        Briefly describe the issue so the technician can prepare in advance.
+                <!-- Priority & Payment -->
+                <div class="card-form-box">
+                    <h3>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Priority &amp; Payment Options
+                    </h3>
+
+                    <div class="field-group" style="margin-bottom:18px;">
+                        <label>Service Priority Level</label>
+                        <div class="priority-cards-grid">
+                            <label class="priority-option-card">
+                                <input type="radio" name="priority" value="Low" required>
+                                <span class="priority-option-label">Low</span>
+                            </label>
+                            <label class="priority-option-card">
+                                <input type="radio" name="priority" value="Medium" required checked>
+                                <span class="priority-option-label">Medium</span>
+                            </label>
+                            <label class="priority-option-card">
+                                <input type="radio" name="priority" value="High" required>
+                                <span class="priority-option-label">High</span>
+                            </label>
+                            <label class="priority-option-card">
+                                <input type="radio" name="priority" value="Emergency" required>
+                                <span class="priority-option-label">Emergency</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label>Payment Method</label>
+                        <select name="payment_method" required>
+                            <option value="">Select Payment Method</option>
+                            <option value="online">Online Payment (Card / UPI / NetBanking)</option>
+                            <option value="offline">Cash / Offline Payment After Service</option>
+                        </select>
+                    </div>
+
+                    <div class="actions-footer-row">
+                        <button type="submit" class="btn-submit-request">
+                            Submit Service Request →
+                        </button>
                     </div>
                 </div>
 
             </div>
 
-        </div>
+            <!-- Right Sidebar -->
+            <div>
+                <div class="sidebar-info-card">
+                    <h4>Service Standards</h4>
 
+                    <div class="sidebar-g-list">
+                        <div class="sidebar-g-item">
+                            <div class="sidebar-g-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            </div>
+                            <div class="sidebar-g-text">
+                                <strong>Verified Technicians</strong>
+                                <p>100% background-checked professionals.</p>
+                            </div>
+                        </div>
 
-        <div class="card section-box">
+                        <div class="sidebar-g-item">
+                            <div class="sidebar-g-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            </div>
+                            <div class="sidebar-g-text">
+                                <strong>Fixed Upfront Pricing</strong>
+                                <p>No hidden surcharges or surprise fees.</p>
+                            </div>
+                        </div>
 
-            <h3>Service Address</h3>
+                        <div class="sidebar-g-item">
+                            <div class="sidebar-g-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                            </div>
+                            <div class="sidebar-g-text">
+                                <strong>Fast Dispatch</strong>
+                                <p>Optimized location matching.</p>
+                            </div>
+                        </div>
 
-            <div class="form-grid">
-
-                <div class="form-group">
-                    <label>House / Flat No.</label>
-                    <input type="text" name="house_flat_no" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Street / Area</label>
-                    <input type="text" name="street_area" required>
-                </div>
-
-                <div class="form-group">
-                    <label>City</label>
-                    <input type="text" name="city" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Pincode</label>
-                    <input type="text" name="pincode" required>
-                </div>
-
-                <div class="form-group full-row">
-                    <label>Additional Landmark (optional)</label>
-                    <input type="text" name="additional_landmark" placeholder="Near hospital, school, etc.">
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <div class="card section-box">
-
-            <h3>Urgency & Priority</h3>
-
-            <div class="priority-box">
-
-                <label class="priority-item">
-                    <input type="radio" name="priority" value="Low" required>
-                    Low Priority
-                </label>
-
-                <label class="priority-item">
-                    <input type="radio" name="priority" value="Medium" required checked>
-                    Medium Priority
-                </label>
-
-                <label class="priority-item">
-                    <input type="radio" name="priority" value="High" required>
-                    High Priority
-                </label>
-
-                <label class="priority-item">
-                    <input type="radio" name="priority" value="Emergency" required>
-                    Emergency
-                </label>
-
-            </div>
-
-            <div class="help-text" style="margin-top:8px;">
-                High and emergency requests are processed first.
-            </div>
-
-        </div>
-
-
-        <div class="card">
-
-            <div class="form-grid">
-                <!-- right review section -->
-                <div class="section-box">
-
-                    <h3>Confirmation</h3>
-
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox"> I confirm that the information provided is correct.
-                        </label>
+                        <div class="sidebar-g-item">
+                            <div class="sidebar-g-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                            </div>
+                            <div class="sidebar-g-text">
+                                <strong>30-Day Guarantee</strong>
+                                <p>Complimentary follow-up if required.</p>
+                            </div>
+                        </div>
                     </div>
-
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox">
-                            I agree to allow technicians to contact me for service related communication.
-                        </label>
-                    </div>
-
                 </div>
-
             </div>
 
         </div>
-        <br>
-        <div class="form-group">
-
-            <label>Payment Method</label>
-
-            <select name="payment_method" required>
-                <option value="">Select Payment Option</option>
-                <option value="online">Pay Now (Online)</option>
-                <option value="offline">Pay After Service</option>
-            </select>
-            <div class="help-text">
-                Online payment processes immediately; offline payment is settled after service completion.
-            </div>
-        </div>
-
-        <div class="form-actions">
-
-            <a href="{% url 'customer_dashboard' %}" class="btn btn-secondary">
-                Cancel
-            </a>
-
-            <button type="submit" class="btn">
-                Submit Service Request
-            </button>
-
-        </div>
-
-        
-
     </form>
 
 </div>
-<script>
 
+<script>
 const params = new URLSearchParams(window.location.search);
 const service = params.get("service");
 
-if(service){
-document.getElementById("serviceCategory").value = service;
+if (service) {
+    document.getElementById("serviceCategory").value = service;
 }
 
-navigator.geolocation.getCurrentPosition(
-
-    function(position) {
-
-        document.getElementById(
-            "customer_latitude"
-        ).value =
-        position.coords.latitude;
-
-        document.getElementById(
-            "customer_longitude"
-        ).value =
-        position.coords.longitude;
-
-        console.log(
-            "📍 CUSTOMER LOCATION CAPTURED"
-        );
-
-    },
-
-    function(error) {
-
-        console.error(
-            "❌ CUSTOMER GPS ERROR:",
-            error
-        );
-
-    }
-
-);
+if ("geolocation" in navigator) {
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            document.getElementById("customer_latitude").value = position.coords.latitude;
+            document.getElementById("customer_longitude").value = position.coords.longitude;
+            console.log("📍 Location captured");
+        },
+        function(error) {
+            console.warn("Location error:", error);
+        }
+    );
+}
 </script>
 
 {% endblock %}

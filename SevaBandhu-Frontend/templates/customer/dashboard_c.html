@@ -3,357 +3,823 @@
 {% block content %}
 
 <style>
-/* ===============================
-   Customer Dashboard Styles
-================================ */
+/* =========================================================
+   Executive Customer Dashboard – Refined Color Accents
+========================================================= */
 
-.dashboard-wrapper{
-    display:flex;
-    flex-direction:column;
-    gap:20px;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+.dashboard-container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 32px 20px 64px;
+    font-family: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    color: #0f172a;
+    background-color: #f8fafc;
 }
 
-/* header section */
-.dashboard-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    gap:20px;
-    flex-wrap:wrap;
+/* Header Section */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-top: 4px solid #2563eb;
+    border-radius: 16px;
+    padding: 28px 32px;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);
 }
 
-.dashboard-header h1{
-    margin-bottom:6px;
+.header-title h1 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    margin: 0 0 4px 0;
 }
 
-.dashboard-header p{
-    color:#64748b;
-    font-size:14px;
+.header-title p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
 }
 
-/* quick actions */
-.quick-actions{
-    display:flex;
-    gap:12px;
-    flex-wrap:wrap;
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
-/* stat cards */
-.stats-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:18px;
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 20px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
 }
 
-.stat-card{
-    background:white;
-    padding:20px;
-    border-radius:8px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.08);
-    border-left:5px solid #2563eb;
+.btn-action-primary {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
-.stat-card.secondary{
-    border-left-color:#0f766e;
+.btn-action-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+    color: #ffffff;
 }
 
-.stat-card.warning{
-    border-left-color:#f59e0b;
+.btn-action-outline {
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
 }
 
-.stat-card.success{
-    border-left-color:#16a34a;
+.btn-action-outline:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+    border-color: #94a3b8;
 }
 
-.stat-card h4{
-    font-size:14px;
-    color:#64748b;
-    margin-bottom:6px;
+/* Color Shaded Metric Cards Grid */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 32px;
 }
 
-.stat-card span{
-    font-size:28px;
-    font-weight:600;
-    color:#1e293b;
+.metric-card {
+    border-radius: 16px;
+    padding: 22px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
 }
 
-/* layout split */
-.dashboard-grid{
-    display:grid;
-    grid-template-columns:2fr 1fr;
-    gap:20px;
+.metric-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
 }
 
-@media(max-width:900px){
-    .dashboard-grid{
-        grid-template-columns:1fr;
-    }
+/* Card 1 - Blue Shade */
+.card-shade-blue {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 1px solid #bfdbfe;
+}
+.card-shade-blue .metric-icon { background: #2563eb; color: #ffffff; }
+.card-shade-blue .metric-number { color: #1e40af; }
+.card-shade-blue .metric-label { color: #1d4ed8; }
+
+/* Card 2 - Amber Shade */
+.card-shade-amber {
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    border: 1px solid #fed7aa;
+}
+.card-shade-amber .metric-icon { background: #d97706; color: #ffffff; }
+.card-shade-amber .metric-number { color: #9a3412; }
+.card-shade-amber .metric-label { color: #c2410c; }
+
+/* Card 3 - Violet Shade */
+.card-shade-violet {
+    background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+    border: 1px solid #ddd6fe;
+}
+.card-shade-violet .metric-icon { background: #7c3aed; color: #ffffff; }
+.card-shade-violet .metric-number { color: #5b21b6; }
+.card-shade-violet .metric-label { color: #6d28d9; }
+
+/* Card 4 - Emerald Shade */
+.card-shade-emerald {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border: 1px solid #a7f3d0;
+}
+.card-shade-emerald .metric-icon { background: #059669; color: #ffffff; }
+.card-shade-emerald .metric-number { color: #065f46; }
+.card-shade-emerald .metric-label { color: #047857; }
+
+.metric-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
-/* table */
-.table-box table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:10px;
+.metric-content {
+    display: flex;
+    flex-direction: column;
 }
 
-.table-box th,
-.table-box td{
-    padding:10px;
-    border-bottom:1px solid #e5e7eb;
-    font-size:14px;
-    text-align:left;
+.metric-number {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.1;
 }
 
-.table-box th{
-    background:#f8fafc;
-    color:#334155;
+.metric-label {
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 3px;
 }
 
-/* status badges */
-.status-badge{
-    padding:4px 10px;
-    border-radius:12px;
-    font-size:12px;
-    font-weight:600;
-    display:inline-block;
+/* Layout Columns */
+.dashboard-layout {
+    display: grid;
+    grid-template-columns: 2.2fr 1fr;
+    gap: 28px;
 }
 
-.status-pending{background:#fef3c7;color:#92400e;}
-.status-accepted{background:#e0f2fe;color:#0369a1;}
-.status-in-progress{background:#ede9fe;color:#5b21b6;}
-.status-completed{background:#dcfce7;color:#166534;}
-.status-cancelled{background:#fee2e2;color:#991b1b;}
-.status-assigned{background:#e0f2fe;color:#0369a1;}
-.status-progress{background:#ede9fe;color:#5b21b6;}
-.status-complete{background:#dcfce7;color:#166534;}
-
-/* profile card */
-.profile-card{
-    display:flex;
-    align-items:center;
-    gap:12px;
+.panel-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.02);
+    padding: 24px;
+    margin-bottom: 28px;
 }
 
-.profile-circle{
-    width:48px;
-    height:48px;
-    border-radius:50%;
-    background:#2563eb;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:white;
-    font-weight:600;
-    font-size:18px;
+.panel-card:last-child {
+    margin-bottom: 0;
 }
 
-/* notifications */
-.notification-list{
-    list-style:none;
-    padding-left:0;
-    margin-top:10px;
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #f1f5f9;
 }
 
-.notification-list li{
-    padding:10px;
-    border-bottom:1px solid #e5e7eb;
-    font-size:14px;
-    color:#475569;
+.panel-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
 }
 
-/* help card */
-.help-card ul{
-    margin-left:18px;
-    line-height:1.7;
-    font-size:14px;
-    color:#475569;
+.panel-link {
+    font-size: 13px;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.panel-link:hover {
+    text-decoration: underline;
+}
+
+/* Colored Category Quick Pills */
+.category-pills {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+}
+
+.category-pill-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 10px;
+    border-radius: 14px;
+    text-decoration: none;
+    color: #0f172a;
+    transition: all 0.25s ease;
+    gap: 8px;
+    border: 1px solid transparent;
+}
+
+/* Individual Color Accents */
+.cat-amber { background: #fffbebf5; border-color: #fef3c7; }
+.cat-amber .category-pill-icon { background: #fef3c7; color: #d97706; }
+.cat-amber:hover { background: #fef3c7; border-color: #fde68a; transform: translateY(-3px); }
+
+.cat-blue { background: #eff6fff5; border-color: #dbeafe; }
+.cat-blue .category-pill-icon { background: #dbeafe; color: #2563eb; }
+.cat-blue:hover { background: #dbeafe; border-color: #bfdbfe; transform: translateY(-3px); }
+
+.cat-cyan { background: #ecfefff5; border-color: #cffafe; }
+.cat-cyan .category-pill-icon { background: #cffafe; color: #0891b2; }
+.cat-cyan:hover { background: #cffafe; border-color: #a5f3fc; transform: translateY(-3px); }
+
+.cat-emerald { background: #ecfdf5f5; border-color: #d1fae5; }
+.cat-emerald .category-pill-icon { background: #d1fae5; color: #059669; }
+.cat-emerald:hover { background: #d1fae5; border-color: #a7f3d0; transform: translateY(-3px); }
+
+.cat-purple { background: #faf5fff5; border-color: #f3e8ff; }
+.cat-purple .category-pill-icon { background: #f3e8ff; color: #7c3aed; }
+.cat-purple:hover { background: #f3e8ff; border-color: #e9d5ff; transform: translateY(-3px); }
+
+.cat-orange { background: #fff7edf5; border-color: #ffedd5; }
+.cat-orange .category-pill-icon { background: #ffedd5; color: #ea580c; }
+.cat-orange:hover { background: #ffedd5; border-color: #fed7aa; transform: translateY(-3px); }
+
+.category-pill-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.category-pill-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* Requests Data Table */
+.table-container {
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+.table-custom {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.table-custom th {
+    background: #f8fafc;
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.table-custom td {
+    padding: 14px 16px;
+    font-size: 13.5px;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.table-custom tr:last-child td {
+    border-bottom: none;
+}
+
+.table-custom tr:hover td {
+    background: #f8fafc;
+}
+
+.req-tag {
+    font-family: ui-monospace, monospace;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #2563eb;
+    background: #eff6ff;
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid #bfdbfe;
+}
+
+/* Status Pills */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.status-pending { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.status-assigned { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+.status-progress { background: #f3e8ff; color: #6d28d9; border: 1px solid #e9d5ff; }
+.status-completed { background: #dcfce7; color: #15803d; border: 1px solid #a7f3d0; }
+.status-cancelled { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+
+.btn-table-action {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-table-action:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.btn-table-action-primary {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+
+.btn-table-action-primary:hover {
+    background: #1d4ed8;
+    color: #ffffff;
+}
+
+/* Sidebar Styling */
+.user-profile-box {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 16px;
+}
+
+.user-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15);
+}
+
+.user-meta h4 {
+    font-size: 15.5px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 2px 0;
+}
+
+.user-meta p {
+    font-size: 12.5px;
+    color: #64748b;
+    margin: 0;
+}
+
+.info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 13px;
+    color: #475569;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tech-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
+
+.tech-item:last-child {
+    margin-bottom: 0;
+}
+
+.tech-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.call-link {
+    font-size: 12px;
+    font-weight: 700;
+    color: #15803d;
+    text-decoration: none;
+    background: #dcfce7;
+    border: 1px solid #a7f3d0;
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+.call-link:hover {
+    background: #15803d;
+    color: #ffffff;
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.activity-item {
+    font-size: 13px;
+    color: #334155;
+    line-height: 1.4;
+    padding-left: 12px;
+    border-left: 3px solid #2563eb;
+}
+
+.activity-date {
+    font-size: 11.5px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+.empty-box {
+    text-align: center;
+    padding: 32px 16px;
+    color: #64748b;
+}
+
+.empty-box p {
+    font-size: 13.5px;
+    margin-bottom: 14px;
+}
+
+@media (max-width: 1024px) {
+    .dashboard-layout { grid-template-columns: 1fr; }
+    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    .category-pills { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 640px) {
+    .metrics-grid { grid-template-columns: 1fr; }
+    .category-pills { grid-template-columns: repeat(2, 1fr); }
+    .header-actions { width: 100%; }
+    .btn-action { flex: 1; justify-content: center; }
 }
 </style>
 
+<div class="dashboard-container">
 
-<div class="dashboard-wrapper">
+    <!-- Top Header -->
+    <div class="page-header">
+        <div class="header-title">
+            <h1>Customer Portal Dashboard</h1>
+            <p>Welcome back, {{ customer.username }}. Overview of active service dispatches and history.</p>
+        </div>
 
-    <!-- Header -->
-    <div class="card dashboard-header">
+        <div class="header-actions">
+            <a href="{% url 'customer_create_request' %}" class="btn-action btn-action-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                New Service Request
+            </a>
+            <a href="{% url 'customer_my_requests' %}" class="btn-action btn-action-outline">
+                All Bookings
+            </a>
+        </div>
+    </div>
 
+    <!-- Color Shaded Metric Cards Grid -->
+    <div class="metrics-grid">
+        <div class="metric-card card-shade-blue">
+            <div class="metric-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+            </div>
+            <div class="metric-content">
+                <span class="metric-number">{{ total_requests }}</span>
+                <span class="metric-label">Total Requests</span>
+            </div>
+        </div>
+
+        <div class="metric-card card-shade-amber">
+            <div class="metric-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="metric-content">
+                <span class="metric-number">{{ pending_requests }}</span>
+                <span class="metric-label">Pending Dispatch</span>
+            </div>
+        </div>
+
+        <div class="metric-card card-shade-violet">
+            <div class="metric-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <div class="metric-content">
+                <span class="metric-number">{{ in_progress_requests }}</span>
+                <span class="metric-label">Active / In Progress</span>
+            </div>
+        </div>
+
+        <div class="metric-card card-shade-emerald">
+            <div class="metric-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div class="metric-content">
+                <span class="metric-number">{{ completed_requests }}</span>
+                <span class="metric-label">Completed Services</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Layout -->
+    <div class="dashboard-layout">
+
+        <!-- Left Column -->
         <div>
-            <h1>Customer Dashboard</h1>
-            <p>Manage your service requests and track technician activities.</p>
+
+            <!-- Book Service Shortcut Panel -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h3 class="panel-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                        Service Category Launcher
+                    </h3>
+                    <a href="{% url 'service_selection' %}" class="panel-link">View All Categories →</a>
+                </div>
+
+                <div class="category-pills">
+                    <a href="{% url 'customer_create_request' %}?service=Electrical" class="category-pill-item cat-amber">
+                        <div class="category-pill-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        </div>
+                        <span class="category-pill-name">Electrical</span>
+                    </a>
+
+                    <a href="{% url 'customer_create_request' %}?service=Plumbing" class="category-pill-item cat-blue">
+                        <div class="category-pill-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+                        </div>
+                        <span class="category-pill-name">Plumbing</span>
+                    </a>
+
+                    <a href="{% url 'customer_create_request' %}?service=AC Repair" class="category-pill-item cat-cyan">
+                        <div class="category-pill-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07l14.14-14.14"/></svg>
+                        </div>
+                        <span class="category-pill-name">AC Repair</span>
+                    </a>
+
+                    <a href="{% url 'customer_create_request' %}?service=Home Cleaning" class="category-pill-item cat-emerald">
+                        <div class="category-pill-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 3h18v4H3zM5 7v14h14V7M10 11v6M14 11v6"/></svg>
+                        </div>
+                        <span class="category-pill-name">Cleaning</span>
+                    </a>
+
+                    <a href="{% url 'customer_create_request' %}?service=Painting" class="category-pill-item cat-purple">
+                        <div class="category-pill-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 11D12 11 12 4 19 4zM12 11v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9"/></svg>
+                        </div>
+                        <span class="category-pill-name">Painting</span>
+                    </a>
+
+                    <a href="{% url 'customer_create_request' %}?service=Carpentry" class="category-pill-item cat-orange">
+                        <div class="category-pill-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                        </div>
+                        <span class="category-pill-name">Carpentry</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Requests Table Panel -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h3 class="panel-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Recent Service Requests
+                    </h3>
+                    <a href="{% url 'customer_my_requests' %}" class="panel-link">View All Bookings →</a>
+                </div>
+
+                {% if service_requests %}
+                <div class="table-container">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Request ID</th>
+                                <th>Category</th>
+                                <th>Technician</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in service_requests %}
+                            <tr>
+                                <td>
+                                    <span class="req-tag">#REQ-{{ item.request.id }}</span>
+                                </td>
+                                <td>
+                                    <strong style="color: #0f172a;">{{ item.request.service_category }}</strong>
+                                </td>
+                                <td>
+                                    {% if item.technician %}
+                                    <span>{{ item.technician.username }}</span>
+                                    {% else %}
+                                    <span style="color: #94a3b8; font-size: 12.5px;">Unassigned</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.request.status == 'Pending' %}
+                                    <span class="status-pill status-pending">Pending</span>
+                                    {% elif item.request.status == 'Accepted' or item.request.status == 'Assigned' %}
+                                    <span class="status-pill status-assigned">Assigned</span>
+                                    {% elif item.request.status == 'In Progress' %}
+                                    <span class="status-pill status-progress">In Progress</span>
+                                    {% elif item.request.status == 'Completed' %}
+                                    <span class="status-pill status-completed">Completed</span>
+                                    {% else %}
+                                    <span class="status-pill status-cancelled">{{ item.request.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span style="color: #64748b; font-size: 13px;">{{ item.request.preferred_service_date|date:"d M Y" }}</span>
+                                </td>
+                                <td>
+                                    {% if item.request.status == 'In Progress' or item.request.status == 'Accepted' or item.request.status == 'Assigned' %}
+                                    <a href="{% url 'customer_tracking' item.request.id %}" class="btn-table-action btn-table-action-primary">
+                                        Track
+                                    </a>
+                                    {% elif item.request.status == 'Completed' %}
+                                    <a href="{% url 'invoice_pdf' item.request.id %}" target="_blank" class="btn-table-action">
+                                        Invoice
+                                    </a>
+                                    {% else %}
+                                    <a href="{% url 'customer_my_requests' %}" class="btn-table-action">
+                                        Details
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-box">
+                    <p>No service requests recorded.</p>
+                    <a href="{% url 'customer_create_request' %}" class="btn-action btn-action-primary">
+                        + Create Request
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
         </div>
 
-        <div class="quick-actions">
-            <a href="{% url 'customer_create_request' %}" class="btn">New Request</a>
-            <a href="{% url 'customer_logout' %}" class="btn" style="background: #ef4444;">Logout</a>
-        </div>
+        <!-- Right Column: Sidebar -->
+        <div>
 
-    </div>
-
-
-    <!-- Stats -->
-    <div class="stats-grid">
-
-        <div class="stat-card">
-            <h4>Total Requests</h4>
-            <span>{{ total_requests }}</span>
-        </div>
-
-        <div class="stat-card secondary">
-            <h4>Pending Requests</h4>
-            <span>{{ pending_requests }}</span>
-        </div>
-
-        <div class="stat-card warning">
-            <h4>In Progress</h4>
-            <span>{{ in_progress_requests }}</span>
-        </div>
-
-        <div class="stat-card success">
-            <h4>Completed</h4>
-            <span>{{ completed_requests }}</span>
-        </div>
-
-    </div>
-
-
-    <!-- Main Grid -->
-    <div class="dashboard-grid">
-
-        <!-- Left: recent requests -->
-        <div class="card table-box">
-
-            <h3>Recent Service Requests</h3>
-
-            {% if service_requests %}
-            <table>
-                <tr>
-                    <th>Request ID</th>
-                    <th>Service Type</th>
-                    <th>Technician</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th>Action</th>
-                </tr>
-
-                {% for item in service_requests %}
-                <tr>
-                    <td>REQ-{{ item.request.id }}</td>
-                    <td>{{ item.request.service_category }}</td>
-                    <td>
-                        {% if item.technician %}
-                        {{ item.technician.username }}
-                        {% else %}
-                        <span style="color: #999;">Not Assigned</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <span class="status-badge status-{{ item.request.status|lower|slugify }}">
-                            {{ item.request.status }}
-                        </span>
-                    </td>
-                    <td>{{ item.request.preferred_service_date|date:"d M Y" }}</td>
-                    <td>
-                        <a href="{% url 'customer_track_request' %}" class="btn">Track</a>
-                    </td>
-                </tr>
-                {% endfor %}
-
-            </table>
-            {% else %}
-            <p style="color: #64748b; padding: 20px; text-align: center;">
-                No service requests yet. <a href="{% url 'customer_create_request' %}">Create your first request.</a>
-            </p>
-            {% endif %}
-
-        </div>
-
-
-        <!-- Right column -->
-        <div style="display:flex; flex-direction:column; gap:20px;">
-
-            <!-- profile -->
-            <div class="card">
-
-                <div class="profile-card">
-                    <div class="profile-circle">{{ customer.username|upper|first }}</div>
-                    <div>
-                        <strong>{{ customer.username }}</strong><br>
-                        <span style="font-size:13px;color:#64748b;">Customer Account</span>
+            <!-- Profile Summary Panel -->
+            <div class="panel-card">
+                <div class="user-profile-box">
+                    <div class="user-avatar">
+                        {{ customer.username|upper|first }}
+                    </div>
+                    <div class="user-meta">
+                        <h4>{{ customer.username }}</h4>
+                        <p>Customer Profile</p>
                     </div>
                 </div>
 
-                <hr style="margin:15px 0;">
-
-                <p style="font-size:14px;color:#475569;">
-                    <strong>Email:</strong> {{ customer.email }}<br>
-                    <strong>Contact:</strong> {{ customer.contact }}
-                </p>
-
+                <div class="info-list">
+                    <div class="info-item">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        <span>{{ customer.email }}</span>
+                    </div>
+                    <div class="info-item">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        <span>{{ customer.contact|default:"No contact provided" }}</span>
+                    </div>
+                </div>
             </div>
 
-            <!-- Technician History -->
-            <div class="card">
-                <h3>Technicians Who Worked</h3>
+            <!-- Assigned Technicians Panel -->
+            <div class="panel-card">
+                <div class="panel-header" style="margin-bottom: 14px;">
+                    <h3 class="panel-title">Assigned Technicians</h3>
+                </div>
 
                 {% if technicians %}
-                <ul class="notification-list">
-                    {% for technician in technicians %}
-                    <li>
-                        <strong>{{ technician.username }}</strong><br>
-                        <span style="font-size: 12px; color: #64748b;">
-                            Contact: {{ technician.contact }}
+                <div>
+                    {% for tech in technicians %}
+                    <div class="tech-item">
+                        <span class="tech-name">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            {{ tech.username }}
                         </span>
-                    </li>
+                        {% if tech.contact %}
+                        <a href="tel:{{ tech.contact }}" class="call-link">Call</a>
+                        {% endif %}
+                    </div>
                     {% endfor %}
-                </ul>
+                </div>
                 {% else %}
-                <p style="font-size:14px;color:#64748b;padding:10px;text-align:center;">
-                    No technicians assigned yet.
-                </p>
+                <p style="font-size: 13px; color: #94a3b8; margin: 0;">No technicians assigned yet.</p>
                 {% endif %}
             </div>
 
-            <!-- notifications -->
-            <div class="card">
-
-                <h3>Recent Notifications</h3>
+            <!-- Activity Stream Panel -->
+            <div class="panel-card">
+                <div class="panel-header" style="margin-bottom: 14px;">
+                    <h3 class="panel-title">Activity Timeline</h3>
+                </div>
 
                 {% if service_requests %}
-                <ul class="notification-list">
+                <div class="activity-list">
                     {% for item in service_requests %}
-                    <li>
-                        {% if item.request.status == 'Pending' %}
-                        Your {{ item.request.service_category }} request (REQ-{{ item.request.id }}) is pending.
-                        {% elif item.request.status == 'In Progress' %}
-                        Your {{ item.request.service_category }} request (REQ-{{ item.request.id }}) is in progress.
-                        {% elif item.request.status == 'Completed' %}
-                        Your {{ item.request.service_category }} request (REQ-{{ item.request.id }}) has been completed successfully.
-                        {% else %}
-                        {{ item.request.service_category }} request (REQ-{{ item.request.id }}) - {{ item.request.status }}
-                        {% endif %}
-                    </li>
+                    <div class="activity-item">
+                        <div>
+                            {% if item.request.status == 'Pending' %}
+                            Request <strong>#REQ-{{ item.request.id }}</strong> ({{ item.request.service_category }}) is pending dispatch.
+                            {% elif item.request.status == 'In Progress' %}
+                            Technician actively working on <strong>#REQ-{{ item.request.id }}</strong>.
+                            {% elif item.request.status == 'Completed' %}
+                            Service <strong>#REQ-{{ item.request.id }}</strong> successfully completed.
+                            {% else %}
+                            Request <strong>#REQ-{{ item.request.id }}</strong> status: {{ item.request.status }}.
+                            {% endif %}
+                        </div>
+                        <div class="activity-date">{{ item.request.preferred_service_date|date:"d M Y" }}</div>
+                    </div>
                     {% endfor %}
-                </ul>
+                </div>
                 {% else %}
-                <p style="font-size:14px;color:#64748b;padding:10px;text-align:center;">
-                    No notifications yet. Create your first service request!
-                </p>
+                <p style="font-size: 13px; color: #94a3b8; margin: 0;">No activity recorded.</p>
                 {% endif %}
-
-            </div>
-
-            <!-- help -->
-            <div class="card help-card">
-
-                <h3>Need Help?</h3>
-
-                <ul>
-                    <li>Create a new service request using the New Request button.</li>
-                    <li>Track real-time job status from the request list.</li>
-                    <li>Contact the assigned technician if required.</li>
-                    <li>For urgent services, mark priority as High or Emergency.</li>
-                </ul>
-
             </div>
 
         </div>
