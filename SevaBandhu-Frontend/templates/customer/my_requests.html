@@ -253,7 +253,118 @@
     .card-details-grid { grid-template-columns: 1fr; }
     .card-footer-actions { flex-direction: column; align-items: flex-start; }
 }
+/* Payment Success Animation */
+.payment-success-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.5s ease;
+}
+.success-card {
+    text-align: center;
+    background: #fff;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transform: scale(0.9);
+    animation: scaleUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes scaleUp {
+    to { transform: scale(1); }
+}
+.success-card h3 {
+    margin-top: 20px;
+    font-size: 24px;
+    color: #0f172a;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700;
+}
+.success-card p {
+    color: #64748b;
+    margin-top: 8px;
+    font-size: 15px;
+}
+.success-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+}
+.checkmark-svg {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    display: block;
+    stroke-width: 4;
+    stroke: #16a34a;
+    stroke-miterlimit: 10;
+    box-shadow: inset 0px 0px 0px #16a34a;
+    animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+}
+.checkmark-circle {
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    stroke-width: 4;
+    stroke-miterlimit: 10;
+    stroke: #16a34a;
+    fill: none;
+    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+.checkmark-check {
+    transform-origin: 50% 50%;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards;
+}
+@keyframes stroke {
+    100% { stroke-dashoffset: 0; }
+}
+@keyframes scale {
+    0%, 100% { transform: none; }
+    50% { transform: scale3d(1.1, 1.1, 1); }
+}
+@keyframes fill {
+    100% { box-shadow: inset 0px 0px 0px 30px transparent; }
+}
 </style>
+
+<!-- Payment Success Overlay (Hidden by Default) -->
+<div id="payment-success-overlay" class="payment-success-overlay" style="display: none;">
+    <div class="success-card">
+        <div class="success-icon-wrapper">
+            <svg class="checkmark-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+            </svg>
+        </div>
+        <h3>Payment Successful!</h3>
+        <p>Your online payment has been received.</p>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('payment_success') === 'true') {
+            const overlay = document.getElementById('payment-success-overlay');
+            overlay.style.display = 'flex';
+            
+            // Remove parameter from URL without reloading
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+            
+            // Hide after 3.5 seconds
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 500); // Wait for transition
+            }, 3500);
+        }
+    });
+</script>
 
 <div class="requests-wrapper">
 
@@ -345,7 +456,13 @@
                     </div>
                     <div class="info-data-row">
                         <span class="data-label">Payment Status</span>
-                        <span class="data-val" style="{% if request.payment_status == 'paid' %}color:#16a34a;{% endif %}">{{ request.payment_status|capfirst }}</span>
+                        <span class="data-val">
+                            {% if request.payment_status == 'paid' %}
+                                <span style="color:#16a34a;">{{ request.payment_status|capfirst }}</span>
+                            {% else %}
+                                {{ request.payment_status|capfirst }}
+                            {% endif %}
+                        </span>
                     </div>
                     <div class="info-data-row">
                         <span class="data-label">City</span>

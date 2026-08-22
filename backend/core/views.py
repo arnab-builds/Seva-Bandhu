@@ -921,7 +921,8 @@ def payment_page(request, service_id):
         except Exception as e:
             print('[ICON] Invoice email error:', str(e))
 
-        return redirect('customer_dashboard')
+        from django.urls import reverse
+        return redirect(reverse('customer_my_requests') + '?payment_success=true')
 
     return render(request, 'customer/payment.html', {
         'service_request': service_request
