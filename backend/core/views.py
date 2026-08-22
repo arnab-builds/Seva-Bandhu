@@ -45,6 +45,32 @@ def base(request):
     return render(request, 'base.html')
 
 
+from django.http import JsonResponse
+
+def technician_api_notifications(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'error', 'message': 'Not authenticated'}, status=401)
+    
+    technician = Technician_signup.objects.filter(username__iexact=request.user.username.strip()).first()
+    if not technician:
+        return JsonResponse({'status': 'error', 'message': 'Technician not found'}, status=404)
+        
+    notifications = TechnicianNotification.objects.filter(technician=technician, is_read=False)
+    data = []
+    for n in notifications:
+        data.append({
+            'id': n.id,
+            'title': n.title,
+            'message': n.message,
+            'request_id': n.service_request.id,
+            'service_category': technician.service_category,
+            'priority': n.service_request.service_detail.priority,
+            'city': n.service_request.service_address.city,
+            'preferred_date': str(n.service_request.service_detail.preferred_service_date),
+            'preferred_time': n.service_request.service_detail.preferred_time_slot,
+        })
+    return JsonResponse({'status': 'success', 'notifications': data})
+
 def technician_dashboard(request):
     if not request.user.is_authenticated:
         return redirect('technician_login')

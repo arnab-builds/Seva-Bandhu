@@ -36,8 +36,8 @@ socket.onopen = function() {
 socket.onmessage = function(event) {
     try {
         const data = JSON.parse(event.data);
-        if (data.content && data.content.type === "new_request") {
-            addNotificationCard(data.content);
+        if (data.type === "new_request") {
+            addNotificationCard(data);
         } else if (data.type === "notification_removed") {
             removeNotificationByRequest(data.request_id);
         }
@@ -99,6 +99,9 @@ function addNotificationCard(data) {
     const container = document.getElementById('notificationContainer');
     if (!container) return;
 
+    const noMsg = document.getElementById('no-notification-msg');
+    if (noMsg) { noMsg.remove(); }
+
     const card = document.createElement('div');
     card.className = "notification-card";
     card.id = `notification-live-${data.request_id}`;
@@ -145,6 +148,32 @@ function removeNotificationByRequest(requestId) {
 function getCSRFToken() {
     return document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
 }
+
+// =========================================================
+// FALLBACK: AJAX POLLING FOR NOTIFICATIONS
+// Ensures 100% reliability if WebSockets are blocked by proxies or process limits
+// =========================================================
+setInterval(() => {
+    fetch('/technician/api/notifications/', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success' && data.notifications) {
+            data.notifications.forEach(notif => {
+                // Check if card already exists (from Django template or live WS)
+                const exists1 = document.getElementById(`notification-${notif.id}`);
+                const exists2 = document.getElementById(`notification-live-${notif.request_id}`);
+                
+                if (!exists1 && !exists2) {
+                    console.log("🔥 Polling found new notification!");
+                    addNotificationCard(notif);
+                }
+            });
+        }
+    })
+    .catch(err => console.error("Polling Error:", err));
+}, 5000); // Poll every 5 seconds
 </script>
 
 <style>
@@ -651,40 +680,40 @@ function getCSRFToken() {
             </h3>
         </div>
 
-        {% if notifications %}
-            <div id="notificationContainer" class="notification-container">
-            {% for notification in notifications %}
-                <div id="notification-{{ notification.id }}" class="notification-card">
-                    <div class="notification-card-header">
-                        <div class="notification-title">{{ notification.title }}</div>
-                        <span class="category-badge">{{ technician.service_category|default:"General Repair" }}</span>
-                    </div>
+        <div id="notificationContainer" class="notification-container">
+            {% if notifications %}
+                {% for notification in notifications %}
+                    <div id="notification-{{ notification.id }}" class="notification-card">
+                        <div class="notification-card-header">
+                            <div class="notification-title">{{ notification.title }}</div>
+                            <span class="category-badge">{{ technician.service_category|default:"General Repair" }}</span>
+                        </div>
 
-                    <div class="notification-info">
-                        <p>{{ notification.message }}</p>
-                    </div>
+                        <div class="notification-info">
+                            <p>{{ notification.message }}</p>
+                        </div>
 
-                    <div class="notification-actions">
-                        <button data-request-id="{{ notification.service_request.id }}"
-                                onclick="acceptRequest('{{ notification.service_request.id }}', '{{ notification.id }}')"
-                                class="btn-action btn-action-primary">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                            Accept Job Request
-                        </button>
+                        <div class="notification-actions">
+                            <button data-request-id="{{ notification.service_request.id }}"
+                                    onclick="acceptRequest('{{ notification.service_request.id }}', '{{ notification.id }}')"
+                                    class="btn-action btn-action-primary">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                Accept Job Request
+                            </button>
 
-                        <button onclick="dismissNotification('{{ notification.id }}')"
-                                class="btn-action btn-action-danger">
-                            Dismiss
-                        </button>
+                            <button onclick="dismissNotification('{{ notification.id }}')"
+                                    class="btn-action btn-action-danger">
+                                Dismiss
+                            </button>
+                        </div>
                     </div>
-                </div>
-            {% endfor %}
-            </div>
-        {% else %}
-            <p style="color: #94a3b8; font-size: 14px; text-align: center; padding: 24px 0; margin: 0;">
-                No new job dispatches currently waiting. Stand by for live incoming requests.
-            </p>
-        {% endif %}
+                {% endfor %}
+            {% else %}
+                <p id="no-notification-msg" style="color: #94a3b8; font-size: 14px; text-align: center; padding: 24px 0; margin: 0;">
+                    No new job dispatches currently waiting. Stand by for live incoming requests.
+                </p>
+            {% endif %}
+        </div>
     </div>
 
 </div>

@@ -22,6 +22,7 @@ urlpatterns = [
     path('technician/login/', views.technician_login, name='technician_login'),
     path('technician/logout/', views.technician_logout, name='technician_logout'),
     path('technician/complete_profile/', views.technician_complete_profile, name='technician_complete_profile'),
+    path('technician/api/notifications/', views.technician_api_notifications, name='technician_api_notifications'),
     path('technician/dismiss-notification/<int:id>/',views.dismiss_notification,name='dismiss_notification'),
     path('technician/navigation/<int:id>/',views.technician_navigation,name='technician_navigation'
 ),
