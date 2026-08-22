@@ -180,10 +180,14 @@
 <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
 <script>
-const map = L.map('map').setView([22.5726, 88.3639], 13);
+const customerLat = parseFloat("{{ service_request.customer_latitude }}") || 22.5726;
+const customerLng = parseFloat("{{ service_request.customer_longitude }}") || 88.3639;
+
+const map = L.map('map').setView([customerLat, customerLng], 14);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 19
 }).addTo(map);
 
 const technicianIcon = L.icon({
@@ -192,39 +196,13 @@ const technicianIcon = L.icon({
     iconAnchor: [20, 20]
 });
 
-const technicianMarker = L.marker([0, 0], {
-    icon: technicianIcon,
-    zIndexOffset: 1000
-}).addTo(map).bindPopup("Technician Location");
-
-const customerLat = parseFloat("{{ service_request.customer_latitude }}") || 22.5726;
-const customerLng = parseFloat("{{ service_request.customer_longitude }}") || 88.3639;
+let technicianMarker = null;
 
 const customerMarker = L.marker([customerLat, customerLng])
     .addTo(map)
     .bindPopup("Customer Location");
 
-let routeControl = L.Routing.control({
-    createMarker: function() { return null; },
-    waypoints: [
-        L.latLng(22.5726, 88.3639),
-        L.latLng(customerLat, customerLng)
-    ],
-    routeWhileDragging: false,
-    addWaypoints: false,
-    draggableWaypoints: false,
-    fitSelectedRoutes: true,
-    show: false
-}).addTo(map);
-
-routeControl.on('routesfound', function(e) {
-    const route = e.routes[0];
-    const distance = (route.summary.totalDistance / 1000).toFixed(2);
-    const time = Math.round(route.summary.totalTime / 60);
-
-    document.getElementById('journey-info').innerHTML = 
-        `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> <span><strong>${time} mins away</strong> • ${distance} km distance remaining</span>`;
-});
+let routeControl = null;
 
 const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
 const socket = new WebSocket(wsProtocol + window.location.host + '/ws/tracking/{{ service_request.id }}/');
@@ -239,11 +217,45 @@ socket.onmessage = function(event) {
         if (data.type === "location_update") {
             const lat = parseFloat(data.latitude);
             const lng = parseFloat(data.longitude);
-            technicianMarker.setLatLng([lat, lng]);
-            routeControl.setWaypoints([
-                L.latLng(lat, lng),
-                L.latLng(customerLat, customerLng)
-            ]);
+            
+            if (!technicianMarker) {
+                technicianMarker = L.marker([lat, lng], {
+                    icon: technicianIcon,
+                    zIndexOffset: 1000
+                }).addTo(map).bindPopup("Technician Location");
+            } else {
+                technicianMarker.setLatLng([lat, lng]);
+            }
+
+            if (!routeControl) {
+                routeControl = L.Routing.control({
+                    createMarker: function() { return null; },
+                    waypoints: [
+                        L.latLng(lat, lng),
+                        L.latLng(customerLat, customerLng)
+                    ],
+                    routeWhileDragging: false,
+                    addWaypoints: false,
+                    draggableWaypoints: false,
+                    fitSelectedRoutes: true,
+                    show: false
+                }).addTo(map);
+
+                routeControl.on('routesfound', function(e) {
+                    const route = e.routes[0];
+                    const distance = (route.summary.totalDistance / 1000).toFixed(2);
+                    const time = Math.round(route.summary.totalTime / 60);
+
+                    document.getElementById('journey-info').innerHTML = 
+                        `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> <span><strong>${time} mins away</strong> • ${distance} km distance remaining</span>`;
+                });
+            } else {
+                routeControl.setWaypoints([
+                    L.latLng(lat, lng),
+                    L.latLng(customerLat, customerLng)
+                ]);
+            }
+            
             map.panTo([lat, lng]);
         }
     } catch (e) {

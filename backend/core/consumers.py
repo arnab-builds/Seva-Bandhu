@@ -11,7 +11,7 @@ class RequestConsumer(AsyncJsonWebsocketConsumer):
 
     async def connect(self):
 
-        print("✅ SOCKET CONNECTED")
+        print("[ICON] SOCKET CONNECTED")
 
         #################################################
         # TECHNICIAN GROUP
@@ -59,7 +59,7 @@ class RequestConsumer(AsyncJsonWebsocketConsumer):
 
     async def disconnect(self, close_code):
 
-        print("❌ SOCKET DISCONNECTED")
+        print("[ICON] SOCKET DISCONNECTED")
 
         #################################################
         # REMOVE TECHNICIAN GROUP
@@ -89,7 +89,7 @@ class RequestConsumer(AsyncJsonWebsocketConsumer):
 
     async def new_request(self, event):
 
-        print("🔥 CONSUMER RECEIVED EVENT")
+        print("[FIRE] CONSUMER RECEIVED EVENT")
 
         await self.send(text_data=json.dumps(
             event['content']
@@ -101,7 +101,7 @@ class RequestConsumer(AsyncJsonWebsocketConsumer):
 
     async def notification_removed(self, event):
 
-        print("🔥 notification_removed HIT")
+        print("[FIRE] notification_removed HIT")
 
         await self.send(text_data=json.dumps({
             'type': 'notification_removed',
@@ -124,7 +124,7 @@ class RequestConsumer(AsyncJsonWebsocketConsumer):
 
         data = json.loads(text_data)
 
-        print("📩 RECEIVED:", data)
+        print("[ICON] RECEIVED:", data)
 
         #################################################
         # LIVE LOCATION TRACKING
@@ -136,7 +136,7 @@ class RequestConsumer(AsyncJsonWebsocketConsumer):
             request_id = data.get('request_id')
 
             print(
-                "📍 LIVE GPS:",
+                "[ICON] LIVE GPS:",
                 latitude,
                 longitude,
                 "REQUEST:",

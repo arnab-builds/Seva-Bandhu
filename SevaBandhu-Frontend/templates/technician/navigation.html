@@ -133,7 +133,10 @@
 <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
 <script>
-const map = L.map('map', { zoomControl: true });
+const customerLat = parseFloat("{{ service_request.customer_latitude }}") || 22.5726;
+const customerLng = parseFloat("{{ service_request.customer_longitude }}") || 88.3639;
+
+const map = L.map('map', { zoomControl: true }).setView([customerLat, customerLng], 14);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
@@ -148,13 +151,7 @@ const technicianIcon = L.icon({
     iconAnchor: [20, 20]
 });
 
-const technicianMarker = L.marker([0, 0], {
-    icon: technicianIcon,
-    zIndexOffset: 1000
-}).addTo(map).bindPopup("🚗 Technician (You)");
-
-const customerLat = parseFloat("{{ service_request.customer_latitude }}");
-const customerLng = parseFloat("{{ service_request.customer_longitude }}");
+let technicianMarker = null;
 
 const customerIcon = L.icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
@@ -173,7 +170,10 @@ const customerMarker = L.marker([customerLat, customerLng], {
 const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
 const trackingSocket = new WebSocket(wsProtocol + window.location.host + '/ws/tracking/{{ service_request.id }}/');
 
-navigator.geolocation.watchPosition(
+if (!("geolocation" in navigator)) {
+    alert("Geolocation is not available! You must be on HTTPS or localhost to use GPS tracking.");
+} else {
+    navigator.geolocation.watchPosition(
     function(position) {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
@@ -195,7 +195,14 @@ navigator.geolocation.watchPosition(
             map.invalidateSize();
         }, 500);
 
-        technicianMarker.setLatLng([lat, lng]);
+        if (!technicianMarker) {
+            technicianMarker = L.marker([lat, lng], {
+                icon: technicianIcon,
+                zIndexOffset: 1000
+            }).addTo(map).bindPopup("🛵 Technician (You)");
+        } else {
+            technicianMarker.setLatLng([lat, lng]);
+        }
 
         if (!window.routeControl) {
             window.routeControl = L.Routing.control({
@@ -233,9 +240,14 @@ navigator.geolocation.watchPosition(
     },
     function(error) {
         console.error("❌ GPS ERROR:", error);
+        if (error.code === 1) alert("GPS Error: Permission Denied.");
+        else if (error.code === 2) alert("GPS Error: Position Unavailable (Are you testing on a desktop without GPS?).");
+        else if (error.code === 3) alert("GPS Error: Timeout (Could not get location).");
+        else alert("GPS Error: " + error.message);
     },
-    { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
+    { enableHighAccuracy: false, maximumAge: 0, timeout: 20000 }
 );
+}
 </script>
 
 {% endblock %}
