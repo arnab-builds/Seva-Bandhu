@@ -46,6 +46,7 @@ urlpatterns = [
    path('send-verification-email/',views.send_verification_email,name='send_verification_email'),
     path('verify-email-code/', views.verify_email_code, name='verify_email_code'),
     path('customer/phone-verify-complete/', views.customer_phone_verify_complete, name='customer_phone_verify_complete'),
+    path('customer/api/chat/', views.customer_api_chat, name='customer_api_chat'),
     
     # --- SUPER ADMIN URLS ---
     path('admin-login/', admin_views.admin_login_view, name='admin_login'),

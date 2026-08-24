@@ -639,7 +639,7 @@
 
                     <a href="{% url 'customer_create_request' %}?service=Painting" class="category-pill-item cat-purple">
                         <div class="category-pill-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 11D12 11 12 4 19 4zM12 11v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9"/></svg>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
                         </div>
                         <span class="category-pill-name">Painting</span>
                     </a>
@@ -826,6 +826,7 @@
 
     </div>
 
+    {% include 'customer/chatbot.html' %}
 </div>
 
 {% endblock %}

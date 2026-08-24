@@ -1289,3 +1289,31 @@ def customer_phone_verify_complete(request):
 
     except Exception as e:
         return JsonResponse({'status': 'failed', 'message': str(e)})
+
+@csrf_exempt
+def customer_api_chat(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'error', 'message': 'Not authenticated'}, status=401)
+    
+    try:
+        customer = customer_signup.objects.get(user=request.user)
+    except customer_signup.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Customer not found'}, status=404)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            message_text = data.get('message', '')
+            history = data.get('history', [])
+            
+            if not message_text:
+                return JsonResponse({'status': 'error', 'message': 'No message provided'}, status=400)
+
+            from core.ai.chatbot import handle_chat_message
+            ai_response = handle_chat_message(customer.username, message_text, history)
+
+            return JsonResponse({'status': 'success', 'response': ai_response})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
