@@ -553,6 +553,10 @@
             <a href="{% url 'customer_my_requests' %}" class="btn-action btn-action-outline">
                 All Bookings
             </a>
+            <a href="{% url 'customer_wallet' %}" class="btn-action" style="background:#1e3a8a; color:white; border:none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                My Wallet (₹{{ customer.wallet_balance }})
+            </a>
         </div>
     </div>
 

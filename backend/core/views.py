@@ -605,6 +605,45 @@ def customer_support_tickets(request):
     
     return render(request, 'customer/support_tickets_c.html', context)
 
+def customer_wallet(request):
+    if not request.user.is_authenticated:
+        return redirect('customer_login')
+    
+    try:
+        customer = customer_signup.objects.filter(user=request.user).first()
+        if not customer:
+            return redirect('customer_login')
+    except customer_signup.DoesNotExist:
+        return redirect('customer_login')
+
+    from core.models import WalletTransaction
+    from decimal import Decimal
+
+    if request.method == "POST":
+        amount_str = request.POST.get('amount', '0')
+        try:
+            amount = Decimal(amount_str)
+            if amount > 0:
+                customer.wallet_balance += amount
+                customer.save()
+                
+                WalletTransaction.objects.create(
+                    customer=customer,
+                    amount=amount,
+                    transaction_type='CREDIT',
+                    description='Self Top-Up (Added via Online Payment)'
+                )
+        except:
+            pass
+        return redirect('customer_wallet')
+
+    transactions = WalletTransaction.objects.filter(customer=customer)
+    
+    context = {
+        'customer': customer,
+        'transactions': transactions,
+    }
+    return render(request, 'customer/wallet.html', context)
 
 
 def customer_track_request(request):
@@ -959,11 +998,33 @@ def payment_page(request, service_id):
 
     if not request.user.is_authenticated or request.user.username != service_request.customer_username:
         return redirect('customer_login')
+    try:
+        customer = customer_signup.objects.filter(user=request.user).first()
+    except customer_signup.DoesNotExist:
+        customer = None
 
     if request.method == "POST":
         print('🔔 payment_page POST request triggered for service:', service_request.id)
         if service_request.payment_method != 'online':
             return HttpResponseForbidden('Only online payments can be processed here.')
+
+        payment_method_choice = request.POST.get('payment_method_choice', 'online')
+        
+        if payment_method_choice == 'wallet':
+            if not customer or customer.wallet_balance < service_request.amount:
+                return HttpResponseForbidden('Insufficient wallet balance.')
+            
+            # Deduct from wallet
+            from core.models import WalletTransaction
+            customer.wallet_balance -= service_request.amount
+            customer.save()
+            
+            WalletTransaction.objects.create(
+                customer=customer,
+                amount=service_request.amount,
+                transaction_type='DEBIT',
+                description=f'Payment for Booking #REQ-{service_request.id}'
+            )
 
         service_request.payment_status = 'paid'
         service_request.save()
@@ -978,7 +1039,8 @@ def payment_page(request, service_id):
         return redirect(reverse('customer_my_requests') + '?payment_success=true')
 
     return render(request, 'customer/payment.html', {
-        'service_request': service_request
+        'service_request': service_request,
+        'customer': customer
     })
 
 

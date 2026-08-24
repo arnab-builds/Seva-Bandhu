@@ -20,6 +20,7 @@ class customer_signup(models.Model):
     blank=True,
     null=True
 )
+    wallet_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     class Meta:
         db_table = 'customer_signup'
@@ -219,3 +220,21 @@ class SupportTicket(models.Model):
 
     def __str__(self):
         return f"{self.ticket_type} - {self.customer.username} ({self.status})"
+
+class WalletTransaction(models.Model):
+    TRANSACTION_TYPES = (
+        ('CREDIT', 'Credit'),
+        ('DEBIT', 'Debit')
+    )
+    customer = models.ForeignKey(customer_signup, on_delete=models.CASCADE, related_name='wallet_transactions')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
+    description = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'WalletTransaction'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.transaction_type} of ₹{self.amount} for {self.customer.username}"

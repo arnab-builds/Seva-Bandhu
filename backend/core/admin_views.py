@@ -352,8 +352,38 @@ def admin_support_ticket_action(request, id):
         resolution_type = request.POST.get('resolution_type', '')
         action_notes = request.POST.get('action_taken', '')
         send_email = request.POST.get('send_email') == 'on'
+        refund_amount_str = request.POST.get('refund_amount', '')
         
-        # Combine the predefined action with admin notes
+        from decimal import Decimal
+        refund_amount = 0
+        try:
+            if refund_amount_str:
+                refund_amount = Decimal(refund_amount_str)
+        except:
+            pass
+
+        email_notes = action_notes
+        refund_html = ""
+        resolution_html = ""
+
+        if resolution_type:
+            resolution_html = f'<p style="margin: 0 0 8px 0; font-size: 14px; color: #1e293b;"><strong>Status:</strong> {resolution_type}</p>'
+
+        if refund_amount > 0:
+            from core.models import WalletTransaction
+            customer = ticket.customer
+            customer.wallet_balance += refund_amount
+            customer.save()
+            WalletTransaction.objects.create(
+                customer=customer,
+                amount=refund_amount,
+                transaction_type='CREDIT',
+                description=f'Refund for Support Ticket #{ticket.id}'
+            )
+            refund_html = f'<p style="margin: 0 0 12px 0; font-size: 14px; color: #15803d;"><strong>Refund Issued:</strong> ₹{refund_amount} (Credited to Seva Bandhu Wallet)</p>'
+            action_notes = f"[Refunded ₹{refund_amount} to Wallet] " + action_notes
+
+        # Combine the predefined action with admin notes for internal database
         if resolution_type:
             ticket.action_taken = f"[{resolution_type}] {action_notes}"
         else:
@@ -383,8 +413,12 @@ def admin_support_ticket_action(request, id):
                         </p>
                         
                         <div style="background-color: #f8fafc; border-left: 4px solid #2563eb; padding: 16px; border-radius: 0 8px 8px 0; margin-bottom: 32px;">
-                            <h4 style="margin: 0 0 8px 0; color: #0f172a; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Admin Response</h4>
-                            <p style="margin: 0; font-size: 15px; color: #334155; line-height: 1.5;">{action_notes}</p>
+                            <h4 style="margin: 0 0 12px 0; color: #0f172a; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Resolution Details</h4>
+                            {resolution_html}
+                            {refund_html}
+                            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+                                <p style="margin: 0; font-size: 15px; color: #334155; line-height: 1.5;">{email_notes}</p>
+                            </div>
                         </div>
                         
                         <p style="font-size: 14px; color: #64748b; margin-bottom: 8px;">Thank you for choosing Seva Bandhu!</p>

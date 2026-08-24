@@ -32,6 +32,7 @@ urlpatterns = [
     path('customer/create_request/', views.customer_create_request, name='customer_create_request'),
     path('customer/my_requests/', views.customer_my_requests, name='customer_my_requests'),
     path('customer/support-tickets/', views.customer_support_tickets, name='customer_support_tickets'),
+    path('customer/wallet/', views.customer_wallet, name='customer_wallet'),
     path('payment/<int:service_id>/', views.payment_page, name='payment_page'),
     path('invoice/<int:service_id>/', views.invoice_pdf, name='invoice_pdf'),
     path('customer/track_request/', views.customer_track_request, name='customer_track_request'),
