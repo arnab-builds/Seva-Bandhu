@@ -31,6 +31,7 @@ urlpatterns = [
     path('customer/dashboard/', views.customer_dashboard, name='customer_dashboard'),
     path('customer/create_request/', views.customer_create_request, name='customer_create_request'),
     path('customer/my_requests/', views.customer_my_requests, name='customer_my_requests'),
+    path('customer/support-tickets/', views.customer_support_tickets, name='customer_support_tickets'),
     path('payment/<int:service_id>/', views.payment_page, name='payment_page'),
     path('invoice/<int:service_id>/', views.invoice_pdf, name='invoice_pdf'),
     path('customer/track_request/', views.customer_track_request, name='customer_track_request'),
@@ -47,6 +48,7 @@ urlpatterns = [
     path('verify-email-code/', views.verify_email_code, name='verify_email_code'),
     path('customer/phone-verify-complete/', views.customer_phone_verify_complete, name='customer_phone_verify_complete'),
     path('customer/api/chat/', views.customer_api_chat, name='customer_api_chat'),
+    path('customer/api/create-ticket/', views.customer_api_create_ticket, name='customer_api_create_ticket'),
     
     # --- SUPER ADMIN URLS ---
     path('admin-login/', admin_views.admin_login_view, name='admin_login'),
@@ -71,6 +73,9 @@ urlpatterns = [
     path('super-admin/service-addresses/', admin_views.admin_service_addresses_list, name='admin_service_addresses_list'),
     path('super-admin/service-details/', admin_views.admin_service_details_list, name='admin_service_details_list'),
     path('super-admin/technician-notifications/', admin_views.admin_notifications_list, name='admin_notifications_list'),
+    
+    path('super-admin/support-tickets/', admin_views.admin_support_tickets_list, name='admin_support_tickets_list'),
+    path('super-admin/support-tickets/<int:id>/action/', admin_views.admin_support_ticket_action, name='admin_support_ticket_action'),
 ]
 
 # 🔥 VERY IMPORTANT — SERVE IMAGES

@@ -253,8 +253,72 @@ chatInput.addEventListener('keypress', (e) => {
 chatSend.addEventListener('click', sendMessage);
 
 function sendQuickAction(text) {
-    chatInput.value = text;
-    sendMessage();
+    if (text === 'Refund policy' || text === 'Complaint') {
+        const ticketType = text === 'Refund policy' ? 'Refund' : 'Complaint';
+        appendMessage('ai', `I can help you with that. Please describe your ${ticketType.toLowerCase()} below, and mention the Technician Name or Request ID if applicable.`);
+        
+        const formDiv = document.createElement('div');
+        formDiv.className = 'chat-bubble chat-ai';
+        formDiv.style.width = '90%';
+        formDiv.innerHTML = `
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <input type="text" id="ticket-req-id" placeholder="Request ID (required)" style="padding:8px; border:1px solid #e5e7eb; border-radius:6px; font-size:13px;">
+                <input type="text" id="ticket-tech" placeholder="Technician Name (optional)" style="padding:8px; border:1px solid #e5e7eb; border-radius:6px; font-size:13px;">
+                <textarea id="ticket-desc" placeholder="Describe your issue..." style="padding:8px; border:1px solid #e5e7eb; border-radius:6px; font-size:13px; resize:vertical; min-height:60px;"></textarea>
+                <button onclick="submitTicket('${ticketType}', this)" style="background:#2563eb; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:600; font-size:13px;">Submit Ticket</button>
+            </div>
+        `;
+        chatMessages.insertBefore(formDiv, typingIndicator);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    } else {
+        chatInput.value = text;
+        sendMessage();
+    }
+}
+
+async function submitTicket(type, btnElement) {
+    const container = btnElement.parentElement;
+    const reqId = container.querySelector('#ticket-req-id').value.trim();
+    const techName = container.querySelector('#ticket-tech').value.trim();
+    const desc = container.querySelector('#ticket-desc').value.trim();
+    
+    if (!reqId) {
+        alert('Please provide the Request ID for this ticket.');
+        return;
+    }
+    if (!desc) {
+        alert('Please provide a description.');
+        return;
+    }
+    
+    btnElement.textContent = 'Submitting...';
+    btnElement.disabled = true;
+    
+    try {
+        const response = await fetch('/customer/api/create-ticket/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                ticket_type: type,
+                description: desc,
+                technician_name: techName,
+                service_request_id: reqId
+            })
+        });
+        
+        const data = await response.json();
+        if (data.status === 'success') {
+            container.innerHTML = `<span style="color:#15803d; font-weight:600; font-size: 13px;">✓ We deeply apologize for the inconvenience. Our team will review your ticket shortly and provide a response. In case of any more replies or issues, you can raise another complaint.</span>`;
+        } else {
+            btnElement.textContent = 'Submit Ticket';
+            btnElement.disabled = false;
+            alert('Error: ' + data.message);
+        }
+    } catch (e) {
+        btnElement.textContent = 'Submit Ticket';
+        btnElement.disabled = false;
+        alert('Network error.');
+    }
 }
 
 function appendMessage(sender, text) {

@@ -313,3 +313,102 @@ def admin_notifications_list(request):
     page_obj = paginator.get_page(page_number)
     return render(request, 'admin_custom/technician_notifications.html', {'page_obj': page_obj, 'query': query})
 
+
+# --- SUPPORT TICKETS ---
+@superuser_required
+def admin_support_tickets_list(request):
+    from core.models import SupportTicket
+    query = request.GET.get('q', '')
+    type_filter = request.GET.get('type', '')
+    status_filter = request.GET.get('status', '')
+    
+    tickets = SupportTicket.objects.all().select_related('customer').order_by('-created_at')
+    
+    if query:
+        tickets = tickets.filter(customer__username__icontains=query) | tickets.filter(technician_name__icontains=query)
+        
+    if type_filter:
+        tickets = tickets.filter(ticket_type=type_filter)
+        
+    if status_filter:
+        tickets = tickets.filter(status=status_filter)
+        
+    paginator = Paginator(tickets, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'admin_custom/support_tickets.html', {
+        'page_obj': page_obj, 
+        'query': query,
+        'type_filter': type_filter,
+        'status_filter': status_filter
+    })
+
+@superuser_required
+def admin_support_ticket_action(request, id):
+    if request.method == "POST":
+        from core.models import SupportTicket
+        ticket = get_object_or_404(SupportTicket, id=id)
+        
+        resolution_type = request.POST.get('resolution_type', '')
+        action_notes = request.POST.get('action_taken', '')
+        send_email = request.POST.get('send_email') == 'on'
+        
+        # Combine the predefined action with admin notes
+        if resolution_type:
+            ticket.action_taken = f"[{resolution_type}] {action_notes}"
+        else:
+            ticket.action_taken = action_notes
+            
+        ticket.status = 'Resolved'
+        ticket.save()
+        
+        if send_email:
+            try:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                from django.utils.html import strip_tags
+                
+                subject = f"Update on your Seva Bandhu Support Ticket #{ticket.id}"
+                
+                html_message = f"""
+                <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+                    <div style="background-color: #0f172a; padding: 24px; text-align: center;">
+                        <h2 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 600;">Seva Bandhu Support</h2>
+                    </div>
+                    <div style="padding: 32px 24px;">
+                        <p style="font-size: 16px; color: #334155; margin-bottom: 20px;">Hello <strong>{ticket.customer.username}</strong>,</p>
+                        
+                        <p style="font-size: 15px; color: #475569; line-height: 1.6; margin-bottom: 24px;">
+                            This email is to inform you that your support ticket <strong>#{ticket.id}</strong> regarding a <strong>{ticket.ticket_type}</strong> has been resolved by our team.
+                        </p>
+                        
+                        <div style="background-color: #f8fafc; border-left: 4px solid #2563eb; padding: 16px; border-radius: 0 8px 8px 0; margin-bottom: 32px;">
+                            <h4 style="margin: 0 0 8px 0; color: #0f172a; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Admin Response</h4>
+                            <p style="margin: 0; font-size: 15px; color: #334155; line-height: 1.5;">{action_notes}</p>
+                        </div>
+                        
+                        <p style="font-size: 14px; color: #64748b; margin-bottom: 8px;">Thank you for choosing Seva Bandhu!</p>
+                        <p style="font-size: 14px; color: #64748b; margin: 0;">If you have any further questions, please reach out via the app chatbot.</p>
+                    </div>
+                    <div style="background-color: #f1f5f9; padding: 16px; text-align: center;">
+                        <p style="margin: 0; font-size: 12px; color: #94a3b8;">&copy; 2026 Seva Bandhu. All rights reserved.</p>
+                    </div>
+                </div>
+                """
+                plain_message = strip_tags(html_message)
+                
+                send_mail(
+                    subject,
+                    plain_message,
+                    settings.EMAIL_HOST_USER,
+                    [ticket.customer.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
+                messages.success(request, f'Ticket #{ticket.id} marked as Resolved ({resolution_type}) and email sent to {ticket.customer.email}.')
+            except Exception as e:
+                messages.warning(request, f'Ticket #{ticket.id} marked as Resolved, but email failed to send: {str(e)}')
+        else:
+            messages.success(request, f'Ticket #{ticket.id} marked as Resolved ({resolution_type}).')
+            
+    return redirect('admin_support_tickets_list')

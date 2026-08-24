@@ -191,4 +191,31 @@ class TechnicianNotification(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.technician.username} - {self.title}"      
+        return f"{self.technician.username} - {self.title}"
+
+class SupportTicket(models.Model):
+    TICKET_TYPES = (
+        ('Refund', 'Refund'),
+        ('Complaint', 'Complaint'),
+        ('Other', 'Other')
+    )
+    STATUS_CHOICES = (
+        ('Open', 'Open'),
+        ('Resolved', 'Resolved')
+    )
+
+    customer = models.ForeignKey(customer_signup, on_delete=models.CASCADE, related_name='support_tickets')
+    ticket_type = models.CharField(max_length=50, choices=TICKET_TYPES)
+    service_request_id = models.CharField(max_length=50, blank=True, null=True)
+    description = models.TextField()
+    technician_name = models.CharField(max_length=255, blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Open')
+    action_taken = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'SupportTicket'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.ticket_type} - {self.customer.username} ({self.status})"

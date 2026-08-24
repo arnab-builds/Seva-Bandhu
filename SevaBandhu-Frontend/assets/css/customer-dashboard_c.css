@@ -165,3 +165,30 @@
     font-size:14px;
     color:#475569;
 }
+
+.support-tickets-link{
+    background:#2563eb;
+    color:#ffffff;
+    padding:11px 20px;
+    border-radius:10px;
+    font-size:13.5px;
+    font-weight:600;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    white-space:nowrap;
+    transition:background-color .2s ease, transform .2s ease;
+}
+
+.support-tickets-link:hover{
+    background:#1d4ed8;
+    color:#ffffff;
+    transform:translateY(-1px);
+}
+
+@media(max-width:600px){
+    .support-tickets-link{
+        width:100%;
+        justify-content:center;
+    }
+}

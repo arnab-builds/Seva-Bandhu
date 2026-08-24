@@ -10,12 +10,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 
 .dashboard-container {
-    max-width: 1240px;
+    width: min(1480px, calc(100% - 48px));
+    max-width: 1480px;
     margin: 0 auto;
-    padding: 32px 20px 64px;
+    padding: 16px 0;
     font-family: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     color: #0f172a;
     background-color: #f8fafc;
+    height: calc(100vh - 72px); /* Assuming navbar is around 72px */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Header Section */
@@ -23,20 +28,20 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 20px;
-    margin-bottom: 32px;
+    gap: 16px;
+    margin-bottom: 16px;
     flex-wrap: wrap;
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
     border: 1px solid #e2e8f0;
     border-top: 4px solid #2563eb;
-    border-radius: 16px;
-    padding: 28px 32px;
+    border-radius: 12px;
+    padding: 16px 24px;
     box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);
 }
 
 .header-title h1 {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 26px;
+    font-size: 22px;
     font-weight: 800;
     color: #0f172a;
     letter-spacing: -0.02em;
@@ -44,7 +49,7 @@
 }
 
 .header-title p {
-    font-size: 14px;
+    font-size: 13px;
     color: #64748b;
     margin: 0;
 }
@@ -59,9 +64,9 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 11px 20px;
-    border-radius: 10px;
-    font-size: 13.5px;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 13px;
     font-weight: 600;
     text-decoration: none;
     transition: all 0.2s ease;
@@ -97,24 +102,24 @@
 .metrics-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
-    margin-bottom: 32px;
+    gap: 16px;
+    margin-bottom: 20px;
 }
 
 .metric-card {
-    border-radius: 16px;
-    padding: 22px;
+    border-radius: 14px;
+    padding: 18px 20px;
     display: flex;
     align-items: center;
-    gap: 16px;
-    transition: all 0.25s ease;
+    gap: 14px;
     position: relative;
     overflow: hidden;
+    transition: all 0.2s ease;
 }
 
 .metric-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
 }
 
 /* Card 1 - Blue Shade */
@@ -123,16 +128,16 @@
     border: 1px solid #bfdbfe;
 }
 .card-shade-blue .metric-icon { background: #2563eb; color: #ffffff; }
-.card-shade-blue .metric-number { color: #1e40af; }
+.card-shade-blue .metric-number { color: #1e3a8a; }
 .card-shade-blue .metric-label { color: #1d4ed8; }
 
 /* Card 2 - Amber Shade */
 .card-shade-amber {
-    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
-    border: 1px solid #fed7aa;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border: 1px solid #fde68a;
 }
 .card-shade-amber .metric-icon { background: #d97706; color: #ffffff; }
-.card-shade-amber .metric-number { color: #9a3412; }
+.card-shade-amber .metric-number { color: #78350f; }
 .card-shade-amber .metric-label { color: #c2410c; }
 
 /* Card 3 - Violet Shade */
@@ -154,8 +159,8 @@
 .card-shade-emerald .metric-label { color: #047857; }
 
 .metric-icon {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -171,7 +176,7 @@
 
 .metric-number {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 800;
     line-height: 1.1;
 }
@@ -179,23 +184,25 @@
 .metric-label {
     font-size: 13px;
     font-weight: 700;
-    margin-top: 3px;
+    margin-top: 2px;
 }
 
 /* Layout Columns */
 .dashboard-layout {
     display: grid;
     grid-template-columns: 2.2fr 1fr;
-    gap: 28px;
+    gap: 20px;
+    flex-grow: 1;
+    overflow: hidden;
 }
 
 .panel-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 16px;
+    border-radius: 14px;
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.02);
-    padding: 24px;
-    margin-bottom: 28px;
+    padding: 20px;
+    margin-bottom: 20px;
 }
 
 .panel-card:last-child {
@@ -206,8 +213,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 14px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
     border-bottom: 1px solid #f1f5f9;
 }
 
@@ -596,7 +603,7 @@
     <div class="dashboard-layout">
 
         <!-- Left Column -->
-        <div>
+        <div style="display: flex; flex-direction: column; overflow: hidden;">
 
             <!-- Book Service Shortcut Panel -->
             <div class="panel-card">
@@ -654,7 +661,7 @@
             </div>
 
             <!-- Recent Requests Table Panel -->
-            <div class="panel-card">
+            <div class="panel-card" style="flex-grow: 1; display: flex; flex-direction: column; overflow: hidden;">
                 <div class="panel-header">
                     <h3 class="panel-title">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -664,9 +671,9 @@
                 </div>
 
                 {% if service_requests %}
-                <div class="table-container">
+                <div class="table-container" style="flex-grow: 1; overflow-y: auto;">
                     <table class="table-custom">
-                        <thead>
+                        <thead style="position: sticky; top: 0; background: #ffffff; z-index: 1;">
                             <tr>
                                 <th>Request ID</th>
                                 <th>Category</th>
@@ -767,59 +774,16 @@
                 </div>
             </div>
 
-            <!-- Assigned Technicians Panel -->
-            <div class="panel-card">
-                <div class="panel-header" style="margin-bottom: 14px;">
-                    <h3 class="panel-title">Assigned Technicians</h3>
-                </div>
 
-                {% if technicians %}
-                <div>
-                    {% for tech in technicians %}
-                    <div class="tech-item">
-                        <span class="tech-name">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                            {{ tech.username }}
-                        </span>
-                        {% if tech.contact %}
-                        <a href="tel:{{ tech.contact }}" class="call-link">Call</a>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
+            <!-- View Support Tickets Button -->
+            <div class="panel-card" style="display:flex; align-items:center; justify-content:space-between; padding: 24px; flex-wrap: wrap; gap: 16px;">
+                <div style="flex: 1 1 200px;">
+                    <h3 class="panel-title" style="margin-bottom:6px;">My Support Tickets</h3>
+                    <p style="font-size:13px; color:#64748b; margin:0; line-height: 1.5;">View your complaints, refund requests, and admin responses.</p>
                 </div>
-                {% else %}
-                <p style="font-size: 13px; color: #94a3b8; margin: 0;">No technicians assigned yet.</p>
-                {% endif %}
-            </div>
-
-            <!-- Activity Stream Panel -->
-            <div class="panel-card">
-                <div class="panel-header" style="margin-bottom: 14px;">
-                    <h3 class="panel-title">Activity Timeline</h3>
-                </div>
-
-                {% if service_requests %}
-                <div class="activity-list">
-                    {% for item in service_requests %}
-                    <div class="activity-item">
-                        <div>
-                            {% if item.request.status == 'Pending' %}
-                            Request <strong>#REQ-{{ item.request.id }}</strong> ({{ item.request.service_category }}) is pending dispatch.
-                            {% elif item.request.status == 'In Progress' %}
-                            Technician actively working on <strong>#REQ-{{ item.request.id }}</strong>.
-                            {% elif item.request.status == 'Completed' %}
-                            Service <strong>#REQ-{{ item.request.id }}</strong> successfully completed.
-                            {% else %}
-                            Request <strong>#REQ-{{ item.request.id }}</strong> status: {{ item.request.status }}.
-                            {% endif %}
-                        </div>
-                        <div class="activity-date">{{ item.request.preferred_service_date|date:"d M Y" }}</div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <p style="font-size: 13px; color: #94a3b8; margin: 0;">No activity recorded.</p>
-                {% endif %}
+                <a href="{% url 'customer_support_tickets' %}" style="background:#2563eb; color:#ffffff; padding:11px 20px; border-radius:10px; font-size:13.5px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:8px; white-space:nowrap; box-shadow:0 1px 2px rgba(37, 99, 235, 0.2);">
+                    View My Tickets &rarr;
+                </a>
             </div>
 
         </div>

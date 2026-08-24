@@ -379,6 +379,9 @@ def customer_dashboard(request):
     # Get recent requests (last 5)
     recent_requests = requests_with_technicians[:5]
     
+    from core.models import SupportTicket
+    support_tickets = SupportTicket.objects.filter(customer=customer).order_by('-created_at')
+
     context = {
         'customer': customer,
         'service_requests': recent_requests,
@@ -387,6 +390,7 @@ def customer_dashboard(request):
         'pending_requests': pending_requests,
         'in_progress_requests': in_progress_requests,
         'completed_requests': completed_requests,
+        'support_tickets': support_tickets,
     }
     
     return render(request, 'customer/dashboard_c.html', context)
@@ -578,6 +582,29 @@ def customer_my_requests(request):
     }
     
     return render(request, 'customer/my_requests.html', context)
+
+
+def customer_support_tickets(request):
+    if not request.user.is_authenticated:
+        return redirect('customer_login')
+    
+    try:
+        customer = customer_signup.objects.filter(user=request.user).first()
+        if not customer:
+            return redirect('customer_login')
+    except customer_signup.DoesNotExist:
+        return redirect('customer_login')
+        
+    from core.models import SupportTicket
+    support_tickets = SupportTicket.objects.filter(customer=customer).order_by('-created_at')
+
+    context = {
+        'customer': customer,
+        'support_tickets': support_tickets,
+    }
+    
+    return render(request, 'customer/support_tickets_c.html', context)
+
 
 
 def customer_track_request(request):
@@ -1317,6 +1344,41 @@ def customer_api_chat(request):
             print('API ERROR:', e)
             import traceback
             traceback.print_exc()
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
+@csrf_exempt
+def customer_api_create_ticket(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'error', 'message': 'Not authenticated'}, status=401)
+    
+    try:
+        customer = customer_signup.objects.get(user=request.user)
+    except customer_signup.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Customer not found'}, status=404)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            ticket_type = data.get('ticket_type')
+            description = data.get('description')
+            technician_name = data.get('technician_name', '')
+            service_request_id = data.get('service_request_id', '')
+
+            if not ticket_type or not description:
+                return JsonResponse({'status': 'error', 'message': 'Missing required fields'}, status=400)
+            
+            from core.models import SupportTicket
+            SupportTicket.objects.create(
+                customer=customer,
+                ticket_type=ticket_type,
+                description=description,
+                technician_name=technician_name,
+                service_request_id=service_request_id
+            )
+            return JsonResponse({'status': 'success', 'message': 'Ticket created successfully'})
+        except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
