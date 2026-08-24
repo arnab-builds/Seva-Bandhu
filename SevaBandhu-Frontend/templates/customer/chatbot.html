@@ -89,6 +89,35 @@
     border-bottom-right-radius: 4px;
 }
 
+.chat-bubble table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+    font-size: 12.5px;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.chat-bubble th, .chat-bubble td {
+    border: 1px solid #e5e7eb;
+    padding: 6px 10px;
+    text-align: left;
+}
+
+.chat-bubble th {
+    background-color: #f1f5f9;
+    font-weight: 600;
+}
+
+.chat-user table th {
+    background-color: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.2);
+}
+.chat-user table td, .chat-user table {
+    border-color: rgba(255,255,255,0.2);
+}
+
 #chat-input-area {
     padding: 16px;
     border-top: 1px solid #e5e7eb;
@@ -195,6 +224,7 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
 const chatToggle = document.getElementById('chat-toggle');
 const chatWindow = document.getElementById('chat-window');
@@ -230,8 +260,24 @@ function sendQuickAction(text) {
 function appendMessage(sender, text) {
     const msgDiv = document.createElement('div');
     msgDiv.className = `chat-bubble chat-${sender}`;
-    // Basic Markdown to HTML link for URLs? Not needed yet.
-    msgDiv.textContent = text;
+    
+    // Parse markdown for AI responses, plain text for user
+    if (sender === 'ai') {
+        msgDiv.innerHTML = marked.parse(text);
+        
+        // Remove bottom margin from last paragraph for tighter spacing
+        const lastP = msgDiv.querySelector('p:last-child');
+        if (lastP) lastP.style.marginBottom = '0';
+        
+        // Style markdown lists inside the bubble
+        msgDiv.querySelectorAll('ul, ol').forEach(list => {
+            list.style.paddingLeft = '20px';
+            list.style.marginTop = '8px';
+            list.style.marginBottom = '8px';
+        });
+    } else {
+        msgDiv.textContent = text;
+    }
     
     // Insert before typing indicator
     chatMessages.insertBefore(msgDiv, typingIndicator);

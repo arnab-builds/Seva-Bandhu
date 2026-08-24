@@ -1314,6 +1314,9 @@ def customer_api_chat(request):
 
             return JsonResponse({'status': 'success', 'response': ai_response})
         except Exception as e:
+            print('API ERROR:', e)
+            import traceback
+            traceback.print_exc()
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
