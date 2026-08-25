@@ -528,6 +528,7 @@ def customer_create_request(request):
         
         if len(service_views) >= threshold:
             from django.utils import timezone
+            from datetime import timedelta
             now_dt = timezone.now()
             cooldown_clear = True
             if customer.last_offer_popup_at:
@@ -535,31 +536,52 @@ def customer_create_request(request):
                 if hours_since_last < cooldown_hours:
                     cooldown_clear = False
             
-            if cooldown_clear:
-                from core.models import Offer, RecommendationLog
-                # Find Offer
-                smart_offer = Offer.objects.filter(
-                    active=True,
-                    applicable_service__name=selected_service,
-                    target_segment__in=['ALL', 'FREQUENT']
-                ).first()
+            # Check 7-day no-recent-successful-booking threshold
+            no_booking_days = getattr(settings, 'SMART_OFFER_NO_BOOKING_DAYS', 7)
+            recent_booking = ServiceRequest.objects.filter(
+                customer_username=customer.username,
+                status__in=['Assigned', 'In Progress', 'Completed'],
+                created_at__gte=now_dt - timedelta(days=no_booking_days)
+            ).exists()
+            
+            if cooldown_clear and not recent_booking:
+                from core.services.offer_engine import OfferEngine
+                eligible_offers = OfferEngine.get_eligible_smart_offers(customer)
                 
-                if not smart_offer:
-                    smart_offer = Offer.objects.filter(
-                        active=True,
-                        applicable_service__isnull=True,
-                        target_segment__in=['ALL', 'FREQUENT']
-                    ).first()
+                if eligible_offers:
+                    # Fetch ML recommendations for the user to rank offers
+                    from core.models import RecommendationLog
+                    try:
+                        from core.ml.recommender import get_recommendations
+                        recs = get_recommendations(customer.username)
+                        # recs format: [{'service': service_obj, 'recommendation_score': score, 'reason': ...}]
+                        ml_scores = {r['service'].name: r['recommendation_score'] for r in recs}
+                    except Exception:
+                        ml_scores = {}
+                        
+                    # Fallback to RecommendationLog if score not in ml_scores
+                    for offer in eligible_offers:
+                        svc_name = offer.applicable_service.name if offer.applicable_service else None
+                        if svc_name and svc_name not in ml_scores:
+                            log = RecommendationLog.objects.filter(customer=customer, service__name=svc_name).order_by('-created_at').first()
+                            if log:
+                                ml_scores[svc_name] = log.recommendation_score
                     
-                if smart_offer:
+                    def score_offer(off):
+                        if off.applicable_service:
+                            return ml_scores.get(off.applicable_service.name, 0)
+                        return -1 # Base score for global offers
+                        
+                    eligible_offers.sort(key=score_offer, reverse=True)
+                    smart_offer = eligible_offers[0]
+                    
                     # Update cooldown
                     customer.last_offer_popup_at = now_dt
                     customer.save(update_fields=['last_offer_popup_at'])
                     
-                    # ML Context Integration
-                    rec_log = RecommendationLog.objects.filter(customer=customer, service__name=selected_service).order_by('-created_at').first()
-                    if rec_log and rec_log.recommendation_score > 3.0:
-                        ml_context_msg = f"Because you frequently interact with {selected_service}, we've unlocked a special discount for you!"
+                    best_score = score_offer(smart_offer)
+                    if best_score > 3.0 and smart_offer.applicable_service:
+                        ml_context_msg = f"Because you frequently interact with {smart_offer.applicable_service.name}, we've unlocked a special discount for you!"
                     else:
                         ml_context_msg = "We noticed you're interested in this service. Book now and save!"
 

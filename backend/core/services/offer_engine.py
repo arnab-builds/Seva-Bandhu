@@ -35,11 +35,59 @@ class OfferEngine:
             defaults={'is_welcome_offer': True}
         )
 
-        # Show the welcome popup only once.
         if not customer_offer.viewed:
             return customer_offer
         
         return None
+
+    @staticmethod
+    def get_eligible_smart_offers(customer):
+        """
+        Returns a list of all currently active offers the customer is eligible for.
+        """
+        from core.models import CustomerOffer, ServiceRequest
+        
+        now = timezone.now()
+        
+        # Determine segments
+        has_booked = ServiceRequest.objects.filter(
+            customer_username=customer.username, 
+            status__in=['Pending', 'Accepted', 'Assigned', 'In Progress', 'Completed']
+        ).exists()
+        
+        completed_bookings = ServiceRequest.objects.filter(
+            customer_username=customer.username, 
+            status='Completed'
+        ).count()
+        
+        segments = ['ALL']
+        if not has_booked:
+            segments.append('NEW_CUSTOMER')
+        if completed_bookings >= 3:
+            segments.append('FREQUENT')
+            
+        # 1. Fetch potentially valid offers
+        base_offers = Offer.objects.filter(
+            active=True,
+            target_segment__in=segments,
+            start_date__lte=now
+        ).exclude(expiry_date__lt=now)
+        
+        eligible_offers = []
+        for offer in base_offers:
+            # Check Global Usage Limit
+            total_uses = CustomerOffer.objects.filter(offer=offer, redeemed=True).count()
+            if total_uses >= offer.usage_limit:
+                continue
+                
+            # Check Customer Limit
+            customer_uses = CustomerOffer.objects.filter(offer=offer, customer=customer, redeemed=True).count()
+            if customer_uses >= offer.per_customer_limit:
+                continue
+                
+            eligible_offers.append(offer)
+            
+        return eligible_offers
 
     @staticmethod
     def validate_and_calculate_discount(code, customer, service_name, original_amount):
