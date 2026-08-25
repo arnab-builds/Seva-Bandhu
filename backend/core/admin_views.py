@@ -456,6 +456,10 @@ def admin_platform_analytics(request):
     import time
     from django.db.models import Avg, Count, Sum
     from core.models import customer_signup, ServiceRequest, RecommendationLog, Offer, CustomerOffer
+    from core.services.offer_engine import OfferEngine
+
+    for customer in customer_signup.objects.all():
+        OfferEngine.sync_customer_assignments(customer)
 
     customers_analyzed = customer_signup.objects.count()
     interactions = ServiceRequest.objects.count()
@@ -595,7 +599,15 @@ def admin_offer_delete(request, id):
 # --- CUSTOMER OFFERS ---
 @superuser_required
 def admin_customer_offers_list(request):
-    customer_offers = CustomerOffer.objects.select_related('customer', 'customer__user', 'offer').order_by('-assigned_at')
+    from core.models import customer_signup
+    from core.services.offer_engine import OfferEngine
+
+    for customer in customer_signup.objects.all():
+        OfferEngine.sync_customer_assignments(customer)
+
+    customer_offers = CustomerOffer.objects.filter(
+        viewed=True
+    ).select_related('customer', 'customer__user', 'offer').order_by('-assigned_at')
     return render(request, 'admin_custom/customer_offers_list.html', {'customer_offers': customer_offers})
 
 # --- REFERRAL LOGS ---

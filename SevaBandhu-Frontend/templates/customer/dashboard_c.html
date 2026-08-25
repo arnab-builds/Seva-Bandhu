@@ -699,7 +699,7 @@
                                     <span class="req-tag">#REQ-{{ item.request.id }}</span>
                                 </td>
                                 <td>
-                                    <strong style="color: #0f172a;">{{ item.request.service_category }}</strong>
+                                    <strong style="color: #0f172a;">{{ item.request.service_detail.service_category }}</strong>
                                 </td>
                                 <td>
                                     {% if item.technician %}
@@ -722,7 +722,7 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <span style="color: #64748b; font-size: 13px;">{{ item.request.preferred_service_date|date:"d M Y" }}</span>
+                                    <span style="color: #64748b; font-size: 13px;">{{ item.request.service_detail.preferred_service_date|date:"d M Y" }}</span>
                                 </td>
                                 <td>
                                     {% if item.request.status == 'In Progress' or item.request.status == 'Accepted' or item.request.status == 'Assigned' %}

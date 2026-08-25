@@ -3,6 +3,43 @@ from core.models import Offer, CustomerOffer
 
 class OfferEngine:
     @staticmethod
+    def sync_customer_assignments(customer):
+        from core.models import CustomerOffer, ServiceRequest
+
+        now = timezone.now()
+        has_booked = ServiceRequest.objects.filter(
+            customer_username=customer.username,
+            status__in=['Pending', 'Accepted', 'Assigned', 'In Progress', 'Completed']
+        ).exists()
+        completed_bookings = ServiceRequest.objects.filter(
+            customer_username=customer.username,
+            status='Completed'
+        ).count()
+
+        segments = ['ALL']
+        if not has_booked:
+            segments.append('NEW_CUSTOMER')
+        if completed_bookings >= 3:
+            segments.append('FREQUENT')
+
+        offers = Offer.objects.filter(
+            active=True,
+            target_segment__in=segments,
+            start_date__lte=now
+        ).exclude(expiry_date__lt=now)
+
+        for offer in offers:
+            if CustomerOffer.objects.filter(offer=offer, redeemed=True).count() >= offer.usage_limit:
+                continue
+            if CustomerOffer.objects.filter(offer=offer, customer=customer, redeemed=True).count() >= offer.per_customer_limit:
+                continue
+            CustomerOffer.objects.get_or_create(
+                customer=customer,
+                offer=offer,
+                defaults={'is_welcome_offer': offer.target_segment == 'NEW_CUSTOMER'}
+            )
+
+    @staticmethod
     def get_welcome_offer(customer):
         """
         Evaluates if the customer should receive the Welcome Offer popup.
@@ -28,7 +65,7 @@ class OfferEngine:
         if has_booked:
             return None
 
-        # Check if this customer already has a relationship with this offer
+        # Keep the assignment for the ledger even after the customer books.
         customer_offer, created = CustomerOffer.objects.get_or_create(
             customer=customer,
             offer=welcome_campaign,
@@ -45,49 +82,15 @@ class OfferEngine:
         """
         Returns a list of all currently active offers the customer is eligible for.
         """
-        from core.models import CustomerOffer, ServiceRequest
-        
-        now = timezone.now()
-        
-        # Determine segments
-        has_booked = ServiceRequest.objects.filter(
-            customer_username=customer.username, 
-            status__in=['Pending', 'Accepted', 'Assigned', 'In Progress', 'Completed']
-        ).exists()
-        
-        completed_bookings = ServiceRequest.objects.filter(
-            customer_username=customer.username, 
-            status='Completed'
-        ).count()
-        
-        segments = ['ALL']
-        if not has_booked:
-            segments.append('NEW_CUSTOMER')
-        if completed_bookings >= 3:
-            segments.append('FREQUENT')
-            
-        # 1. Fetch potentially valid offers
-        base_offers = Offer.objects.filter(
+        from core.models import CustomerOffer
+
+        OfferEngine.sync_customer_assignments(customer)
+        return list(Offer.objects.filter(
             active=True,
-            target_segment__in=segments,
-            start_date__lte=now
-        ).exclude(expiry_date__lt=now)
-        
-        eligible_offers = []
-        for offer in base_offers:
-            # Check Global Usage Limit
-            total_uses = CustomerOffer.objects.filter(offer=offer, redeemed=True).count()
-            if total_uses >= offer.usage_limit:
-                continue
-                
-            # Check Customer Limit
-            customer_uses = CustomerOffer.objects.filter(offer=offer, customer=customer, redeemed=True).count()
-            if customer_uses >= offer.per_customer_limit:
-                continue
-                
-            eligible_offers.append(offer)
-            
-        return eligible_offers
+            customer_assignments__customer=customer,
+            customer_assignments__redeemed=False,
+            start_date__lte=timezone.now()
+        ).exclude(expiry_date__lt=timezone.now()).distinct())
 
     @staticmethod
     def validate_and_calculate_discount(code, customer, service_name, original_amount):

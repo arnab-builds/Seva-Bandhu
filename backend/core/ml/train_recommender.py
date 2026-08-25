@@ -77,6 +77,9 @@ def train_model():
     if len(pivot) < 3:
         print("Not enough diverse users to train Collaborative Filtering. Saving interaction data only.")
         joblib.dump(pivot, os.path.join(model_dir, 'interaction_matrix.joblib'))
+        knn_path = os.path.join(model_dir, 'knn_model.joblib')
+        if os.path.exists(knn_path):
+            os.remove(knn_path)
         return
         
     # Fit NearestNeighbors

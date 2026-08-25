@@ -13,6 +13,7 @@ from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.views.decorators.csrf import csrf_exempt
@@ -434,6 +435,8 @@ def customer_account(request):
         return redirect('customer_login')
         
     from core.models import CustomerOffer
+    from core.services.offer_engine import OfferEngine
+    OfferEngine.sync_customer_assignments(customer)
     offers = CustomerOffer.objects.filter(customer=customer).select_related('offer').order_by('-assigned_at')
     
     # Mark as viewed for analytics
@@ -453,7 +456,9 @@ def customer_account(request):
         active=True, 
         start_date__lte=now,
         target_segment='ALL'
-    ).exclude(expiry_date__lt=now)
+    ).exclude(expiry_date__lt=now).exclude(
+        id__in=offers.values_list('offer_id', flat=True)
+    )
     
     # Referral Data
     from core.models import ReferralLog
@@ -964,6 +969,19 @@ def customer_sign_up(request):
                 phone_verified=False,
                 referral_code=new_ref_code
             )
+
+            from core.models import Offer, CustomerOffer
+            welcome_offer = Offer.objects.filter(
+                target_segment='NEW_CUSTOMER',
+                active=True,
+                start_date__lte=timezone.now()
+            ).exclude(expiry_date__lt=timezone.now()).order_by('-created_at').first()
+            if welcome_offer:
+                CustomerOffer.objects.create(
+                    customer=customer,
+                    offer=welcome_offer,
+                    is_welcome_offer=True
+                )
             
             # [FIRE] Process Referral Payouts
             if referral_code_input:

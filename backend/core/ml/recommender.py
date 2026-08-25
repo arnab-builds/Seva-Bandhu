@@ -20,6 +20,9 @@ def get_recommendations(customer_username, max_results=3):
     if has_model:
         knn = joblib.load(knn_path)
         pivot = joblib.load(matrix_path)
+
+        if getattr(knn, 'n_features_in_', None) != pivot.shape[1]:
+            return _get_fallback_recommendations(service_map, max_results)
         
         if customer_username in pivot.index:
             # We have history for this user, do CF
