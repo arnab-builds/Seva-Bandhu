@@ -58,6 +58,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    flex-wrap: wrap;
 }
 
 .btn-action {
@@ -190,7 +191,7 @@
 /* Layout Columns */
 .dashboard-layout {
     display: grid;
-    grid-template-columns: 2.2fr 1fr;
+    grid-template-columns: 1fr;
     gap: 20px;
     flex-grow: 1;
     overflow: hidden;
@@ -553,6 +554,10 @@
             <a href="{% url 'customer_my_requests' %}" class="btn-action btn-action-outline">
                 All Bookings
             </a>
+            <a href="{% url 'customer_account' %}" class="btn-action btn-action-outline">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                My Profile
+            </a>
             <a href="{% url 'customer_wallet' %}" class="btn-action" style="background:#1e3a8a; color:white; border:none;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
                 My Wallet (₹{{ customer.wallet_balance }})
@@ -749,38 +754,10 @@
                 {% endif %}
             </div>
 
-        </div>
-
-        <!-- Right Column: Sidebar -->
-        <div>
-
-            <!-- Profile Summary Panel -->
-            <div class="panel-card">
-                <div class="user-profile-box">
-                    <div class="user-avatar">
-                        {{ customer.username|upper|first }}
-                    </div>
-                    <div class="user-meta">
-                        <h4>{{ customer.username }}</h4>
-                        <p>Customer Profile</p>
-                    </div>
-                </div>
-
-                <div class="info-list">
-                    <div class="info-item">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                        <span>{{ customer.email }}</span>
-                    </div>
-                    <div class="info-item">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        <span>{{ customer.contact|default:"No contact provided" }}</span>
-                    </div>
-                </div>
             </div>
 
-
             <!-- View Support Tickets Button -->
-            <div class="panel-card" style="display:flex; align-items:center; justify-content:space-between; padding: 24px; flex-wrap: wrap; gap: 16px;">
+            <div class="panel-card" style="display:flex; align-items:center; justify-content:space-between; padding: 24px; flex-wrap: wrap; gap: 16px; margin-top: 20px; flex-shrink: 0;">
                 <div style="flex: 1 1 200px;">
                     <h3 class="panel-title" style="margin-bottom:6px;">My Support Tickets</h3>
                     <p style="font-size:13px; color:#64748b; margin:0; line-height: 1.5;">View your complaints, refund requests, and admin responses.</p>
@@ -795,6 +772,117 @@
     </div>
 
     {% include 'customer/chatbot.html' %}
+
+    {% if welcome_offer %}
+    <!-- Welcome Offer Modal Overlay -->
+    <div id="welcomeOfferModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.75); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(8px);">
+        <div style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); width: min(90%, 460px); border-radius: 20px; padding: 40px 32px; box-shadow: 0 24px 48px rgba(0,0,0,0.25); position: relative; text-align: center; border: 4px solid #fef08a; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">
+            
+            <!-- Close Button -->
+            <button onclick="closeWelcomeModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; cursor: pointer; color: #94a3b8; transition: color 0.2s;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            
+            <div style="width: 80px; height: 80px; margin: 0 auto 20px auto; background: #fef9c3; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ca8a04; box-shadow: 0 4px 12px rgba(202, 138, 4, 0.2);">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+            </div>
+            
+            <h2 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 26px; font-weight: 800; color: #0f172a; margin: 0 0 12px 0;">{{ welcome_offer.offer.title }}</h2>
+            <p style="font-size: 15px; color: #475569; margin: 0 0 24px 0; line-height: 1.5;">{{ welcome_offer.offer.description }}</p>
+            
+            <div style="background: #f1f5f9; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                <p style="font-size: 13px; font-weight: 600; color: #64748b; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.05em;">Your Promo Code</p>
+                <div style="font-family: ui-monospace, monospace; font-size: 28px; font-weight: 800; color: #2563eb; letter-spacing: 2px;">
+                    {{ welcome_offer.offer.code }}
+                </div>
+            </div>
+            
+            <button onclick="closeWelcomeModal()" style="width: 100%; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff; border: none; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(37,99,235,0.3); transition: transform 0.2s;">
+                Awesome, let's book!
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.getElementById('welcomeOfferModal').style.display = 'flex';
+            }, 500);
+        });
+
+        function closeWelcomeModal() {
+            document.getElementById('welcomeOfferModal').style.display = 'none';
+        }
+    </script>
+    {% elif recommended_services %}
+    <!-- Recommendation Modal Overlay -->
+    <div id="recommendationModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+        <!-- Modal Content -->
+        <div style="background: #ffffff; width: min(90%, 500px); border-radius: 16px; padding: 32px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); position: relative; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">
+            <!-- Close Button -->
+            <button onclick="closeRecModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; cursor: pointer; color: #64748b; padding: 4px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 16px; background: #eff6ff; color: #2563eb; margin-bottom: 16px;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </div>
+                <h2 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; font-weight: 800; color: #0f172a; margin: 0 0 8px 0;">Recommended For You</h2>
+                <p style="font-size: 14px; color: #64748b; margin: 0; line-height: 1.5;">Based on your activity, we think you might need these services.</p>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                {% for item in recommended_services %}
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; transition: all 0.2s ease;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 40px; height: 40px; border-radius: 8px; background: #e0e7ff; color: #3730a3; display: flex; align-items: center; justify-content: center;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07l14.14-14.14"/></svg>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #1e293b;">
+                                ⭐ {{ item.service.name }}
+                            </h4>
+                            <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b; font-style: italic;">
+                                {{ item.reason }}
+                            </p>
+                            <p style="margin: 4px 0 0 0; font-size: 13px; color: #15803d; font-weight: 600;">Starts at ₹{{ item.service.price }}</p>
+                        </div>
+                    </div>
+                    <a href="{% url 'customer_create_request' %}?service={{ item.service.name|urlencode }}&rec=1" style="background: #2563eb; color: #ffffff; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; box-shadow: 0 2px 6px rgba(37,99,235,0.2);">
+                        Book Now
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const recModal = document.getElementById('recommendationModal');
+            if (recModal && !sessionStorage.getItem('recommendationModalShown')) {
+                // Show modal slightly after page load for better effect
+                setTimeout(() => {
+                    recModal.style.display = 'flex';
+                }, 800);
+            }
+        });
+
+        function closeRecModal() {
+            document.getElementById('recommendationModal').style.display = 'none';
+            sessionStorage.setItem('recommendationModalShown', 'true');
+        }
+    </script>
+    {% endif %}
+
+    <style>
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.9) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+    </style>
+
 </div>
 
 {% endblock %}

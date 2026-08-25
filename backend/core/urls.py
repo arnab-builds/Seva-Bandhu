@@ -29,6 +29,7 @@ urlpatterns = [
 
     # Customer
     path('customer/dashboard/', views.customer_dashboard, name='customer_dashboard'),
+    path('customer/account/', views.customer_account, name='customer_account'),
     path('customer/create_request/', views.customer_create_request, name='customer_create_request'),
     path('customer/my_requests/', views.customer_my_requests, name='customer_my_requests'),
     path('customer/support-tickets/', views.customer_support_tickets, name='customer_support_tickets'),
@@ -50,11 +51,23 @@ urlpatterns = [
     path('customer/phone-verify-complete/', views.customer_phone_verify_complete, name='customer_phone_verify_complete'),
     path('customer/api/chat/', views.customer_api_chat, name='customer_api_chat'),
     path('customer/api/create-ticket/', views.customer_api_create_ticket, name='customer_api_create_ticket'),
+    path('api/apply-coupon/', views.apply_coupon, name='apply_coupon'),
     
     # --- SUPER ADMIN URLS ---
     path('admin-login/', admin_views.admin_login_view, name='admin_login'),
     path('super-admin/logout/', admin_views.admin_logout_view, name='admin_logout'),
     path('super-admin/', admin_views.admin_dashboard_view, name='admin_dashboard'),
+    path('super-admin/analytics/', admin_views.admin_platform_analytics, name='admin_platform_analytics'),
+    
+    path('super-admin/offers/', admin_views.admin_offers_list, name='admin_offers_list'),
+    path('super-admin/offers/add/', admin_views.admin_offer_add, name='admin_offer_add'),
+    path('super-admin/offers/<int:id>/edit/', admin_views.admin_offer_edit, name='admin_offer_edit'),
+    path('super-admin/offers/<int:id>/toggle/', admin_views.admin_offer_toggle, name='admin_offer_toggle'),
+    path('super-admin/offers/<int:id>/delete/', admin_views.admin_offer_delete, name='admin_offer_delete'),
+    
+    path('super-admin/customer-offers/', admin_views.admin_customer_offers_list, name='admin_customer_offers_list'),
+    
+    path('super-admin/referrals/', admin_views.admin_referrals_list, name='admin_referrals_list'),
     
     path('super-admin/customers/', admin_views.admin_customers_list, name='admin_customers_list'),
     path('super-admin/customers/<int:id>/', admin_views.admin_customer_detail, name='admin_customer_detail'),

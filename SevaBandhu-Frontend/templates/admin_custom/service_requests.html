@@ -40,9 +40,13 @@
                     <td><strong style="color: #2563eb;">#REQ-{{ req.id }}</strong></td>
                     <td><strong>{{ req.service_detail.service_category }}</strong></td>
                     <td>
-                        <a href="{% url 'admin_customer_detail' req.customer.id %}" style="color: #0f172a; text-decoration: none; font-weight: 600;">
-                            {{ req.customer_username }}
-                        </a>
+                        {% if req.customer %}
+                            <a href="{% url 'admin_customer_detail' req.customer.id %}" style="color: #0f172a; text-decoration: none; font-weight: 600;">
+                                {{ req.customer_username }}
+                            </a>
+                        {% else %}
+                            <span style="font-weight: 600;">{{ req.customer_username }}</span>
+                        {% endif %}
                     </td>
                     <td>
                         {% if req.technician %}
