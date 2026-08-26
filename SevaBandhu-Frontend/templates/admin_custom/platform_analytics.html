@@ -138,6 +138,46 @@
         </tbody>
     </table>
 
+    <h2 class="section-title" style="margin-top: 56px;">SERVICE PERFORMANCE</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Service Name</th>
+                <th>Completed Bookings</th>
+                <th>Validated Complaints</th>
+                <th>Complaint Rate</th>
+                <th>Calculated Rating</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for service_name, data in service_ratings.items %}
+            <tr>
+                <td><strong>{{ service_name }}</strong></td>
+                <td>{{ data.booking_count }}</td>
+                <td>{{ data.validated_complaint_count }}</td>
+                <td>
+                    {% if data.booking_count > 0 %}
+                    <span class="badge {% if data.complaint_rate_percent > 5.0 %}badge-danger{% else %}badge-success{% endif %}">{{ data.complaint_rate_percent }}%</span>
+                    {% else %}
+                    <span style="color:#94a3b8;">N/A</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if data.has_data %}
+                    <span style="font-weight:800; color:#0f172a;">⭐ {{ data.rating }}</span>
+                    {% else %}
+                    <span style="color:#94a3b8; font-size: 12px;">No ratings yet</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #94a3b8; padding: 32px;">No service rating data available.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
     <h2 class="section-title" style="margin-top: 56px;">SMART OFFERS PERFORMANCE</h2>
 
     <div class="analytics-grid">

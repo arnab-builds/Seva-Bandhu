@@ -538,6 +538,9 @@ def admin_platform_analytics(request):
             'revenue': rev
         })
 
+    from core.services.rating_engine import ServiceRatingEngine
+    service_ratings = ServiceRatingEngine.get_all_service_ratings()
+
     context = {
         'customers_analyzed': customers_analyzed,
         'interactions': interactions,
@@ -561,6 +564,7 @@ def admin_platform_analytics(request):
         'offer_bookings': offer_bookings,
         'offer_revenue': offer_revenue,
         'individual_offers': individual_offers,
+        'service_ratings': service_ratings,
     }
     return render(request, 'admin_custom/platform_analytics.html', context)
 

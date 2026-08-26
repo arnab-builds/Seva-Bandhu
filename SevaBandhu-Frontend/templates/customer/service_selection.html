@@ -460,11 +460,24 @@
                 </div>
                 {% endif %}
 
-                <div class="rating-tag">⭐ 4.9</div>
+                {% if service.rating_info.has_data %}
+                <div class="rating-tag">⭐ {{ service.rating_info.rating }}</div>
+                {% else %}
+                <div class="rating-tag" style="font-size: 11px;">No ratings yet</div>
+                {% endif %}
             </div>
 
             <div class="card-body-content">
-                <h3 class="card-service-title">{{ service.name }}</h3>
+                <h3 class="card-service-title" style="margin-bottom: 4px;">{{ service.name }}</h3>
+                {% if service.rating_info.has_data %}
+                <div style="font-size: 11.5px; color: #64748b; margin-bottom: 12px; font-weight: 500;">
+                    Based on {{ service.rating_info.booking_count }} completed {% if service.rating_info.booking_count == 1 %}service{% else %}services{% endif %}
+                </div>
+                {% else %}
+                <div style="font-size: 11.5px; color: #64748b; margin-bottom: 12px; font-weight: 500;">
+                    New Service
+                </div>
+                {% endif %}
 
                 <ul class="features-list">
                     <li>

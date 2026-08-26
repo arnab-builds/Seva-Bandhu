@@ -1058,10 +1058,12 @@ def customer_logout(request):
 
 
 from .models import Service
+from core.services.rating_engine import ServiceRatingEngine
 
 def service_selection(request):
 
     services = Service.objects.all()
+    service_ratings = ServiceRatingEngine.get_all_service_ratings()
 
     service_list = []
 
@@ -1074,12 +1076,22 @@ def service_selection(request):
 
         # [FIRE] final decision
         is_active = service.is_enabled and available
+        
+        rating_info = service_ratings.get(service.name, {
+            "has_data": False,
+            "rating": 0.0,
+            "booking_count": 0,
+            "validated_complaint_count": 0,
+            "complaint_rate": 0.0,
+            "complaint_rate_percent": 0.0
+        })
 
         service_list.append({
             'name': service.name,
             'image': service.image,
             'price': service.price,
-            'is_active': is_active
+            'is_active': is_active,
+            'rating_info': rating_info
         })
 
     return render(request, 'customer/service_selection.html', {
