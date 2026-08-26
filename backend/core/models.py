@@ -72,6 +72,37 @@ class Technician_signup(models.Model):
     def __str__(self):
         return self.username
 
+    @property
+    def raw_average_rating(self):
+        from django.db.models import Avg
+        result = self.ratings.aggregate(Avg('rating'))['rating__avg']
+        return round(result, 1) if result else 0.0
+
+    @property
+    def rating_count(self):
+        return self.ratings.count()
+
+    @property
+    def active_warning_count(self):
+        return self.warnings.filter(status='ACTIVE').count()
+
+    @property
+    def final_rating(self):
+        raw_avg = self.raw_average_rating
+        if raw_avg == 0.0 and self.rating_count == 0:
+            return 0.0 # No ratings yet
+            
+        warnings = self.active_warning_count
+        penalty = warnings * 1 # Enforce 1 point per warning
+        
+        final = raw_avg - penalty
+        if final < 0.0:
+            final = 0.0
+        elif final > 5.0:
+            final = 5.0
+            
+        return round(final, 1)
+
 
 class ServiceAddress(models.Model):
     house_flat_no = models.CharField(max_length=50)
@@ -225,8 +256,13 @@ class SupportTicket(models.Model):
     customer = models.ForeignKey(customer_signup, on_delete=models.CASCADE, related_name='support_tickets')
     ticket_type = models.CharField(max_length=50, choices=TICKET_TYPES)
     service_request_id = models.CharField(max_length=50, blank=True, null=True)
-    description = models.TextField()
     technician_name = models.CharField(max_length=255, blank=True, null=True)
+    
+    # New strict relational bindings
+    related_booking = models.ForeignKey('ServiceRequest', on_delete=models.SET_NULL, null=True, blank=True, related_name='complaints')
+    related_technician = models.ForeignKey('Technician_signup', on_delete=models.SET_NULL, null=True, blank=True, related_name='complaints')
+    
+    description = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Open')
     action_taken = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -388,3 +424,38 @@ class ReferralLog(models.Model):
 
     def __str__(self):
         return f"{self.referrer.username} referred {self.referee.username} (+₹{self.reward_amount})"
+
+class TechnicianRating(models.Model):
+    customer = models.ForeignKey(customer_signup, on_delete=models.CASCADE, related_name='submitted_ratings')
+    technician = models.ForeignKey(Technician_signup, on_delete=models.CASCADE, related_name='ratings')
+    service_request = models.OneToOneField(ServiceRequest, on_delete=models.CASCADE, related_name='technician_rating')
+    rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
+    review_text = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'TechnicianRating'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.rating} star(s) by {self.customer.username} for {self.technician.username}"
+
+class TechnicianWarning(models.Model):
+    WARNING_STATUS = (
+        ('ACTIVE', 'Active'),
+        ('REVERTED', 'Reverted'),
+    )
+    technician = models.ForeignKey(Technician_signup, on_delete=models.CASCADE, related_name='warnings')
+    support_ticket = models.OneToOneField(SupportTicket, on_delete=models.CASCADE, related_name='warning')
+    penalty_points = models.IntegerField(default=1, help_text="Penalty point applied to rating. Must be 1 per business rule.")
+    status = models.CharField(max_length=20, choices=WARNING_STATUS, default='ACTIVE')
+    admin_notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'TechnicianWarning'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Warning for {self.technician.username} (Ticket: {self.support_ticket.id})"

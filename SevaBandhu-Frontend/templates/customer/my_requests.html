@@ -393,7 +393,7 @@
     {% if service_requests %}
     <div class="requests-grid-list">
         {% for item in service_requests %}
-        {% with request=item.request technician=item.technician %}
+        {% with request=item.request technician=item.technician rating=item.rating %}
         <div class="request-item-card">
 
             <!-- Top Header -->
@@ -480,7 +480,7 @@
                     <div class="tech-info-pill">
                         <div class="tech-avatar-mini">{{ technician.username|upper|first }}</div>
                         <div style="font-size:13px;">
-                            <strong>Technician: {{ technician.username }}</strong>
+                            <strong>Technician: {{ technician.username }} <span style="color:#eab308; margin-left:6px; font-weight:700;">⭐ {{ technician.final_rating }} / 5</span></strong>
                             <span style="color:#64748b; display:block; font-size:11.5px;">Contact: {{ technician.contact }}</span>
                         </div>
                     </div>
@@ -495,6 +495,21 @@
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
                         Track Technician
                     </a>
+                    {% endif %}
+                    
+                    {% if request.status == 'Completed' and technician %}
+                        {% if rating %}
+                            <span class="btn-card-action" style="background:#fef9c3; color:#a16207; border:1px solid #fef08a;">
+                                ⭐ {{ rating.rating }} / 5 Rated
+                            </span>
+                        {% else %}
+                            <button type="button" onclick="openRatingModal('{{ request.id }}', '{{ technician.username }}')" class="btn-card-action" style="background:#eab308; color:#ffffff; border:none; cursor:pointer;">
+                                ⭐ Rate Technician
+                            </button>
+                        {% endif %}
+                        <button type="button" onclick="openComplaintModal('{{ request.id }}', '{{ technician.username }}')" class="btn-card-action" style="background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; cursor:pointer;">
+                            Report an Issue
+                        </button>
                     {% endif %}
 
                     {% if request.payment_method == 'online' and request.payment_status == 'pending' %}
@@ -525,6 +540,188 @@
     </div>
     {% endif %}
 
+    </div>
+
 </div>
+
+<!-- Rating Modal -->
+<div id="ratingModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:#fff; padding:30px; border-radius:12px; width:90%; max-width:400px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+        <h3 style="margin-top:0; color:#0f172a; font-family:'Plus Jakarta Sans', sans-serif;">Rate Technician</h3>
+        <p style="color:#64748b; font-size:14px; margin-bottom:20px;">Technician: <strong id="ratingTechName"></strong></p>
+        
+        <form id="ratingForm">
+            <input type="hidden" id="ratingRequestId" name="request_id">
+            
+            <label style="display:block; margin-bottom:8px; font-weight:600; color:#0f172a; font-size:14px;">Select Rating:</label>
+            <div style="display:flex; gap:10px; margin-bottom:20px; font-size:24px; cursor:pointer;" id="starContainer">
+                <span data-val="1">☆</span><span data-val="2">☆</span><span data-val="3">☆</span><span data-val="4">☆</span><span data-val="5">☆</span>
+            </div>
+            <input type="hidden" id="selectedRating" name="rating" required>
+            
+            <label style="display:block; margin-bottom:8px; font-weight:600; color:#0f172a; font-size:14px;">Review (Optional):</label>
+            <textarea id="reviewText" name="review_text" rows="3" style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:10px; font-family:inherit; margin-bottom:20px; resize:none;" placeholder="How was the service?"></textarea>
+            
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button type="button" onclick="closeRatingModal()" style="padding:10px 16px; border-radius:8px; border:1px solid #cbd5e1; background:#fff; color:#334155; font-weight:600; cursor:pointer;">Cancel</button>
+                <button type="button" onclick="submitRating()" style="padding:10px 16px; border-radius:8px; border:none; background:#2563eb; color:#fff; font-weight:600; cursor:pointer;">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let currentRating = 0;
+const stars = document.querySelectorAll('#starContainer span');
+
+stars.forEach(star => {
+    star.addEventListener('click', function() {
+        currentRating = parseInt(this.getAttribute('data-val'));
+        document.getElementById('selectedRating').value = currentRating;
+        updateStars(currentRating);
+    });
+});
+
+function updateStars(rating) {
+    stars.forEach(star => {
+        if (parseInt(star.getAttribute('data-val')) <= rating) {
+            star.textContent = '★';
+            star.style.color = '#eab308';
+        } else {
+            star.textContent = '☆';
+            star.style.color = '#000';
+        }
+    });
+}
+
+function openRatingModal(reqId, techName) {
+    document.getElementById('ratingRequestId').value = reqId;
+    document.getElementById('ratingTechName').textContent = techName;
+    document.getElementById('ratingModal').style.display = 'flex';
+    currentRating = 0;
+    document.getElementById('selectedRating').value = '';
+    document.getElementById('reviewText').value = '';
+    updateStars(0);
+}
+
+function closeRatingModal() {
+    document.getElementById('ratingModal').style.display = 'none';
+}
+
+function submitRating() {
+    const reqId = document.getElementById('ratingRequestId').value;
+    const ratingVal = document.getElementById('selectedRating').value;
+    const reviewTxt = document.getElementById('reviewText').value;
+    
+    if (!ratingVal) {
+        alert("Please select a rating from 1 to 5 stars.");
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('request_id', reqId);
+    formData.append('rating', ratingVal);
+    formData.append('review_text', reviewTxt);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    
+    fetch("{% url 'submit_technician_rating' %}", {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert("Error: " + data.message);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Failed to submit rating.");
+    });
+}
+</script>
+
+<!-- Complaint Modal -->
+<div id="complaintModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:#fff; padding:30px; border-radius:12px; width:90%; max-width:400px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+        <h3 style="margin-top:0; color:#0f172a; font-family:'Plus Jakarta Sans', sans-serif;">Report an Issue</h3>
+        <p style="color:#64748b; font-size:14px; margin-bottom:20px;">Technician: <strong id="complaintTechName"></strong></p>
+        
+        <form id="complaintForm">
+            <input type="hidden" id="complaintRequestId" name="request_id">
+            
+            <label style="display:block; margin-bottom:8px; font-weight:600; color:#0f172a; font-size:14px;">Issue Category:</label>
+            <select id="complaintCategory" name="category" style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:10px; font-family:inherit; margin-bottom:20px;">
+                <option value="" disabled selected>Select an issue...</option>
+                <option value="Late arrival">Late arrival</option>
+                <option value="Poor service">Poor service</option>
+                <option value="Technician behaviour">Technician behaviour</option>
+                <option value="Property damage">Property damage</option>
+                <option value="Payment/service dispute">Payment/service dispute</option>
+                <option value="Other">Other</option>
+            </select>
+            
+            <label style="display:block; margin-bottom:8px; font-weight:600; color:#0f172a; font-size:14px;">Description:</label>
+            <textarea id="complaintDescription" name="description" rows="4" style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:10px; font-family:inherit; margin-bottom:20px; resize:none;" placeholder="Please describe the issue in detail..." required></textarea>
+            
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button type="button" onclick="closeComplaintModal()" style="padding:10px 16px; border-radius:8px; border:1px solid #cbd5e1; background:#fff; color:#334155; font-weight:600; cursor:pointer;">Cancel</button>
+                <button type="button" onclick="submitComplaint()" style="padding:10px 16px; border-radius:8px; border:none; background:#dc2626; color:#fff; font-weight:600; cursor:pointer;">Submit Complaint</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openComplaintModal(reqId, techName) {
+    document.getElementById('complaintRequestId').value = reqId;
+    document.getElementById('complaintTechName').textContent = techName;
+    document.getElementById('complaintModal').style.display = 'flex';
+    document.getElementById('complaintCategory').value = '';
+    document.getElementById('complaintDescription').value = '';
+}
+
+function closeComplaintModal() {
+    document.getElementById('complaintModal').style.display = 'none';
+}
+
+function submitComplaint() {
+    const reqId = document.getElementById('complaintRequestId').value;
+    const category = document.getElementById('complaintCategory').value;
+    const description = document.getElementById('complaintDescription').value;
+    
+    if (!category || !description) {
+        alert("Please select a category and provide a description.");
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('request_id', reqId);
+    formData.append('category', category);
+    formData.append('description', description);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    
+    fetch("{% url 'submit_complaint' %}", {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert(data.message);
+            closeComplaintModal();
+        } else {
+            alert("Error: " + data.message);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Failed to submit complaint.");
+    });
+}
+</script>
 
 {% endblock %}

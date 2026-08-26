@@ -145,7 +145,17 @@ def admin_technicians_list(request):
 def admin_technician_detail(request, id):
     technician = get_object_or_404(Technician_signup, id=id)
     requests = ServiceRequest.objects.filter(technician_username=technician.username).order_by('-created_at')
-    return render(request, 'admin_custom/technician_detail.html', {'technician': technician, 'requests': requests})
+    
+    from core.models import TechnicianWarning, TechnicianRating
+    warnings = TechnicianWarning.objects.filter(technician=technician).order_by('-created_at')
+    ratings = TechnicianRating.objects.filter(technician=technician).order_by('-created_at')
+    
+    return render(request, 'admin_custom/technician_detail.html', {
+        'technician': technician, 
+        'requests': requests,
+        'warnings': warnings,
+        'ratings': ratings
+    })
 
 @superuser_required
 def admin_technician_deactivate(request, id):
@@ -388,6 +398,21 @@ def admin_support_ticket_action(request, id):
         # Combine the predefined action with admin notes for internal database
         if resolution_type:
             ticket.action_taken = f"[{resolution_type}] {action_notes}"
+            
+            # Implementation of Step 9: Warning System
+            if resolution_type == 'Action Taken Against Technician' and ticket.related_technician:
+                from core.models import TechnicianWarning
+                TechnicianWarning.objects.update_or_create(
+                    support_ticket=ticket,
+                    defaults={
+                        'technician': ticket.related_technician,
+                        'penalty_points': 1,
+                        'status': 'ACTIVE',
+                        'admin_notes': f"Warning from Support Ticket #{ticket.id}: {action_notes}",
+                    }
+                )
+                messages.success(request, f'Official warning issued to {ticket.related_technician.username} with a 1-point penalty.')
+                
         else:
             ticket.action_taken = action_notes
             

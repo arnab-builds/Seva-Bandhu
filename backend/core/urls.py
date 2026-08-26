@@ -32,6 +32,8 @@ urlpatterns = [
     path('customer/account/', views.customer_account, name='customer_account'),
     path('customer/create_request/', views.customer_create_request, name='customer_create_request'),
     path('customer/my_requests/', views.customer_my_requests, name='customer_my_requests'),
+    path('customer/submit_technician_rating/', views.submit_technician_rating, name='submit_technician_rating'),
+    path('customer/submit_complaint/', views.submit_complaint, name='submit_complaint'),
     path('customer/support-tickets/', views.customer_support_tickets, name='customer_support_tickets'),
     path('customer/wallet/', views.customer_wallet, name='customer_wallet'),
     path('payment/<int:service_id>/', views.payment_page, name='payment_page'),
@@ -51,6 +53,7 @@ urlpatterns = [
     path('customer/phone-verify-complete/', views.customer_phone_verify_complete, name='customer_phone_verify_complete'),
     path('customer/api/chat/', views.customer_api_chat, name='customer_api_chat'),
     path('customer/api/create-ticket/', views.customer_api_create_ticket, name='customer_api_create_ticket'),
+    path('customer/api/verify-request/', views.customer_api_verify_request, name='customer_api_verify_request'),
     path('api/apply-coupon/', views.apply_coupon, name='apply_coupon'),
     
     # --- SUPER ADMIN URLS ---

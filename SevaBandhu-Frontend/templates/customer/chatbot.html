@@ -301,17 +301,21 @@ chatSend.addEventListener('click', sendMessage);
 function sendQuickAction(text) {
     if (text === 'Refund policy' || text === 'Complaint') {
         const ticketType = text === 'Refund policy' ? 'Refund' : 'Complaint';
-        appendMessage('ai', `I can help you with that. Please describe your ${ticketType.toLowerCase()} below, and mention the Technician Name or Request ID if applicable.`);
+        appendMessage('ai', `I can help you with that. To get started, please provide your **Booking / Request ID** below.`);
         
         const formDiv = document.createElement('div');
         formDiv.className = 'chat-bubble chat-ai';
         formDiv.style.width = '90%';
         formDiv.innerHTML = `
-            <div style="display:flex; flex-direction:column; gap:8px;">
-                <input type="text" id="ticket-req-id" placeholder="Request ID (required)" style="padding:8px; border:1px solid #e5e7eb; border-radius:6px; font-size:13px;">
-                <input type="text" id="ticket-tech" placeholder="Technician Name (optional)" style="padding:8px; border:1px solid #e5e7eb; border-radius:6px; font-size:13px;">
+            <div id="ticket-step-1" style="display:flex; flex-direction:column; gap:8px;">
+                <input type="text" id="ticket-req-id" placeholder="Request ID (e.g. 12345)" style="padding:8px; border:1px solid #e5e7eb; border-radius:6px; font-size:13px;">
+                <button onclick="verifyTicketRequest('${ticketType}', this)" style="background:#0f172a; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:600; font-size:13px;">Verify Booking</button>
+            </div>
+            <div id="ticket-step-2" style="display:none; flex-direction:column; gap:8px; margin-top:8px;">
+                <label style="font-size:12px; font-weight:600; color:#475569;">Assigned Technician:</label>
+                <input type="text" id="ticket-tech" readonly style="padding:8px; border:1px solid #cbd5e1; background:#f1f5f9; border-radius:6px; font-size:13px; color:#475569; font-weight:600;">
                 <textarea id="ticket-desc" placeholder="Describe your issue..." style="padding:8px; border:1px solid #e5e7eb; border-radius:6px; font-size:13px; resize:vertical; min-height:60px;"></textarea>
-                <button onclick="submitTicket('${ticketType}', this)" style="background:#2563eb; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:600; font-size:13px;">Submit Ticket</button>
+                <button onclick="submitTicket('${ticketType}', this)" style="background:#dc2626; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:600; font-size:13px;">Submit Ticket</button>
             </div>
         `;
         chatMessages.insertBefore(formDiv, typingIndicator);
@@ -322,16 +326,48 @@ function sendQuickAction(text) {
     }
 }
 
-async function submitTicket(type, btnElement) {
-    const container = btnElement.parentElement;
+async function verifyTicketRequest(type, btnElement) {
+    const container = btnElement.parentElement.parentElement;
     const reqId = container.querySelector('#ticket-req-id').value.trim();
-    const techName = container.querySelector('#ticket-tech').value.trim();
-    const desc = container.querySelector('#ticket-desc').value.trim();
     
     if (!reqId) {
-        alert('Please provide the Request ID for this ticket.');
+        alert('Please provide the Request ID.');
         return;
     }
+    
+    btnElement.textContent = 'Verifying...';
+    btnElement.disabled = true;
+    
+    try {
+        const response = await fetch('/customer/api/verify-request/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ request_id: reqId })
+        });
+        
+        const data = await response.json();
+        if (data.status === 'success') {
+            container.querySelector('#ticket-step-1').style.display = 'none';
+            const step2 = container.querySelector('#ticket-step-2');
+            step2.style.display = 'flex';
+            step2.querySelector('#ticket-tech').value = data.technician_name;
+        } else {
+            btnElement.textContent = 'Verify Booking';
+            btnElement.disabled = false;
+            alert(data.message);
+        }
+    } catch (e) {
+        btnElement.textContent = 'Verify Booking';
+        btnElement.disabled = false;
+        alert('Network error.');
+    }
+}
+
+async function submitTicket(type, btnElement) {
+    const container = btnElement.parentElement.parentElement;
+    const reqId = container.querySelector('#ticket-req-id').value.trim();
+    const desc = container.querySelector('#ticket-desc').value.trim();
+    
     if (!desc) {
         alert('Please provide a description.');
         return;
@@ -347,14 +383,13 @@ async function submitTicket(type, btnElement) {
             body: JSON.stringify({
                 ticket_type: type,
                 description: desc,
-                technician_name: techName,
                 service_request_id: reqId
             })
         });
         
         const data = await response.json();
         if (data.status === 'success') {
-            container.innerHTML = `<span style="color:#15803d; font-weight:600; font-size: 13px;">✓ We deeply apologize for the inconvenience. Our team will review your ticket shortly and provide a response. In case of any more replies or issues, you can raise another complaint.</span>`;
+            container.innerHTML = `<span style="color:#15803d; font-weight:600; font-size: 13px;">✓ Ticket registered successfully! Our team will review your complaint and contact you shortly.</span>`;
         } else {
             btnElement.textContent = 'Submit Ticket';
             btnElement.disabled = false;

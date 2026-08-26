@@ -124,6 +124,10 @@
 .btn-cancel-link:hover {
     color: #0f172a;
 }
+
+.wallet-disabled {
+    opacity: 0.6;
+}
 </style>
 
 <div class="payment-wrapper-box">
@@ -172,7 +176,7 @@
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                 </label>
 
-                <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px; border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer; {% if customer.wallet_balance < service_request.amount %}opacity: 0.6;{% endif %}">
+                <label class="{% if customer.wallet_balance < service_request.amount %}wallet-disabled{% endif %}" style="display: flex; align-items: center; justify-content: space-between; padding: 16px; border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer;">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <input type="radio" name="payment_method_choice" value="wallet" style="width: 18px; height: 18px; accent-color: #2563eb;" {% if customer.wallet_balance < service_request.amount %}disabled{% endif %}>
                         <div>

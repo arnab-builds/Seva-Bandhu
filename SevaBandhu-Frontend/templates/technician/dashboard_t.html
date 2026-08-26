@@ -600,7 +600,12 @@ setInterval(() => {
     <div class="page-header">
         <div class="header-title">
             <h1>Technician Partner Workspace</h1>
-            <p>Welcome back, <strong>{{ technician.username }}</strong>! Monitor live dispatches and manage assigned jobs.</p>
+            <p>Welcome back, <strong>{{ technician.username }}</strong>! 
+               <span style="background:#fef9c3; color:#a16207; padding:2px 8px; border-radius:12px; font-weight:600; font-size:12px; margin-left:6px;">⭐ {{ technician.final_rating }} / 5 ({{ technician.rating_count }} Ratings)</span>
+               {% if technician.active_warning_count > 0 %}
+               <span onclick="openWarningsModal()" style="cursor:pointer; background:#fee2e2; color:#b91c1c; padding:2px 8px; border-radius:12px; font-weight:600; font-size:12px; margin-left:6px; transition:opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">⚠️ {{ technician.active_warning_count }} Warnings (View)</span>
+               {% endif %}
+            </p>
         </div>
 
         <div class="header-actions">
@@ -737,6 +742,14 @@ setInterval(() => {
                     <value>{{ technician.username }}</value>
                 </div>
                 <div class="profile-field-item">
+                    <label>Performance Rating</label>
+                    <value>⭐ {{ technician.final_rating }} / 5 <span style="font-size:11px; color:#64748b;">({{ technician.rating_count }} Reviews)</span></value>
+                </div>
+                <div class="profile-field-item">
+                    <label>Active Warnings</label>
+                    <value style="color: {% if technician.active_warning_count > 0 %}#b91c1c{% else %}#15803d{% endif %};">{{ technician.active_warning_count }}</value>
+                </div>
+                <div class="profile-field-item">
                     <label>Email Address</label>
                     <value>{{ technician.email }}</value>
                 </div>
@@ -780,5 +793,107 @@ setInterval(() => {
         {% endif %}
     </div>
 </div>
+
+<!-- Warnings Modal -->
+<div id="warningsModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3 style="color:#b91c1c;">My Disciplinary Warnings</h3>
+            <button class="close-modal" onclick="closeWarningsModal()">✕</button>
+        </div>
+        
+        <p style="font-size:13.5px; color:#64748b; margin-bottom: 20px;">
+            The following warnings have been issued against your account. An Active warning reduces your overall rating by 1 point.
+        </p>
+        
+        <div style="display:flex; flex-direction:column; gap:16px; max-height:400px; overflow-y:auto; padding-right:8px;">
+            {% for warning in technician.warnings.all %}
+            <div style="background:#f8fafc; border:1px solid {% if warning.status == 'ACTIVE' %}#fca5a5{% else %}#e2e8f0{% endif %}; border-radius:12px; padding:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                    <div>
+                        <strong style="color:#0f172a; font-size:14.5px; display:block; margin-bottom:4px;">
+                            Warning Date: {{ warning.created_at|date:"M d, Y" }}
+                        </strong>
+                        <span style="font-size:12.5px; color:#64748b; font-family:ui-monospace, monospace;">
+                            {% if warning.support_ticket and warning.support_ticket.service_request_id %}
+                                Booking ID: #{{ warning.support_ticket.service_request_id }}
+                            {% else %}
+                                Booking ID: N/A
+                            {% endif %}
+                        </span>
+                    </div>
+                    <span style="font-size:11px; font-weight:700; padding:4px 8px; border-radius:6px; {% if warning.status == 'ACTIVE' %}background:#fee2e2; color:#b91c1c;{% else %}background:#f1f5f9; color:#64748b;{% endif %}">
+                        {{ warning.status }}
+                    </span>
+                </div>
+                
+                {% if warning.support_ticket %}
+                <div style="margin-bottom:12px;">
+                    <span style="display:block; font-size:12px; color:#475569; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Customer Complaint</span>
+                    <p class="complaint-text-block" style="margin:0; font-size:13.5px; color:#334155; line-height:1.5; background:#fff; padding:10px; border-radius:8px; border:1px solid #e2e8f0; white-space: pre-wrap;">{{ warning.support_ticket.description|default:"No description provided." }}</p>
+                </div>
+                {% endif %}
+                
+                {% if warning.status == 'ACTIVE' %}
+                <div style="margin-top:12px; padding-top:12px; border-top:1px dashed #cbd5e1; font-size:12.5px; color:#b91c1c; font-weight:600;">
+                    Penalty Applied: -{{ warning.penalty_points }} Rating Point
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div style="text-align:center; padding:30px; color:#94a3b8; font-size:14px; background:#f8fafc; border-radius:12px; border:1px dashed #cbd5e1;">
+                No warnings have been issued. Keep up the great work!
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div style="display:flex; justify-content:flex-end; margin-top:20px;">
+            <button class="btn-action btn-action-outline" onclick="closeWarningsModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openWarningsModal() {
+        document.getElementById('warningsModal').classList.add('show');
+        document.body.style.overflow = 'hidden';
+        
+        // Auto-format raw complaint text if it mashes Category and remark together
+        document.querySelectorAll('.complaint-text-block').forEach(block => {
+            if (!block.dataset.formatted) {
+                let text = block.innerHTML.trim();
+                
+                if (text.includes('Category:')) {
+                    // Split by newlines to see if they separated category and remark
+                    let lines = text.split('\n');
+                    let newHtml = '';
+                    let remarkAdded = false;
+                    
+                    for (let i = 0; i < lines.length; i++) {
+                        let line = lines[i].trim();
+                        if (line.startsWith('Category:')) {
+                            newHtml += line.replace('Category:', '<strong style="color:#0f172a;">Category:</strong>') + '<br>';
+                        } else if (line !== '') {
+                            if (!remarkAdded && !line.startsWith('Remark:') && !line.startsWith('Details:')) {
+                                newHtml += '<br><strong style="color:#0f172a;">Customer Remark:</strong><br>' + line + '<br>';
+                                remarkAdded = true;
+                            } else {
+                                newHtml += line + '<br>';
+                            }
+                        }
+                    }
+                    
+                    block.innerHTML = newHtml;
+                }
+                block.dataset.formatted = "true";
+            }
+        });
+    }
+    
+    function closeWarningsModal() {
+        document.getElementById('warningsModal').classList.remove('show');
+        document.body.style.overflow = 'auto';
+    }
+</script>
 
 {% endblock %}

@@ -37,6 +37,20 @@
                 <span style="display:block; font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Working Locations</span>
                 <strong style="font-size:14px; color:#0f172a;">{{ technician.working_locations|default:"All Areas" }}</strong>
             </div>
+            
+            <div style="background:#fef9c3; padding:16px; border-radius:10px; border:1px solid #fef08a;">
+                <span style="display:block; font-size:12px; color:#a16207; font-weight:600; text-transform:uppercase;">Performance Rating</span>
+                <strong style="font-size:14px; color:#713f12;">⭐ {{ technician.final_rating }} / 5 ({{ technician.rating_count }} Ratings)</strong>
+            </div>
+            
+            <div style="background:#f8fafc; padding:16px; border-radius:10px; border:1px solid #e2e8f0;">
+                <span style="display:block; font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Active Warnings</span>
+                {% if technician.active_warning_count > 0 %}
+                <strong style="font-size:14px; color:#b91c1c;">⚠️ {{ technician.active_warning_count }} Warnings</strong>
+                {% else %}
+                <strong style="font-size:14px; color:#15803d;">⚠️ {{ technician.active_warning_count }} Warnings</strong>
+                {% endif %}
+            </div>
 
             <div style="background:#f8fafc; padding:16px; border-radius:10px; border:1px solid #e2e8f0;">
                 <span style="display:block; font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Current Availability</span>
@@ -90,6 +104,64 @@
                 </tr>
                 {% empty %}
                 <tr><td colspan="4" style="text-align:center; color:#94a3b8; padding:24px;">No assigned service requests found for this technician.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Warnings Table -->
+    <h2 style="font-family:'Plus Jakarta Sans', sans-serif; font-size:18px; font-weight:700; color:#0f172a; margin-top:32px; margin-bottom:16px;">Technician Disciplinary Warnings</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date Issued</th>
+                    <th>Reason / Notes</th>
+                    <th>Penalty Applied</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for warning in warnings %}
+                <tr>
+                    <td style="color:#64748b;">{{ warning.created_at|date:"M d, Y h:i A" }}</td>
+                    <td style="max-width:300px; white-space:normal; font-size:13px;">{{ warning.admin_notes }}</td>
+                    <td>-{{ warning.penalty_points }} Rating Point</td>
+                    <td>
+                        <span class="badge {% if warning.status == 'ACTIVE' %}badge-danger{% else %}badge-secondary{% endif %}">
+                            {{ warning.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" style="text-align:center; color:#94a3b8; padding:24px;">No warnings issued for this technician.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Ratings Table -->
+    <h2 style="font-family:'Plus Jakarta Sans', sans-serif; font-size:18px; font-weight:700; color:#0f172a; margin-top:32px; margin-bottom:16px;">Customer Ratings & Reviews</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Rating</th>
+                    <th>Review Text</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rating in ratings %}
+                <tr>
+                    <td style="color:#64748b;">{{ rating.created_at|date:"M d, Y" }}</td>
+                    <td>{{ rating.customer.username }}</td>
+                    <td><strong style="color:#a16207;">⭐ {{ rating.rating }} / 5</strong></td>
+                    <td style="max-width:300px; white-space:normal; font-size:13px;">{{ rating.review_text|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" style="text-align:center; color:#94a3b8; padding:24px;">No ratings received yet.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
