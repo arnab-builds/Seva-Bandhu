@@ -459,3 +459,31 @@ class TechnicianWarning(models.Model):
 
     def __str__(self):
         return f"Warning for {self.technician.username} (Ticket: {self.support_ticket.id})"
+
+
+class ChatConversation(models.Model):
+    service_request = models.OneToOneField(ServiceRequest, on_delete=models.CASCADE, related_name='chat_conversation')
+    created_at = models.DateTimeField(auto_now_add=True)
+    closed_at = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'ChatConversation'
+
+    def __str__(self):
+        return f"Chat for Request {self.service_request.id} ({self.is_active})"
+
+
+class ChatMessage(models.Model):
+    conversation = models.ForeignKey(ChatConversation, on_delete=models.CASCADE, related_name='messages')
+    sender_username = models.CharField(max_length=100)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'ChatMessage'
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Message by {self.sender_username} at {self.created_at}"

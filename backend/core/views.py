@@ -173,6 +173,17 @@ def technician_update_status(request):
 
             # [FIRE] MAIN FIX — HANDLE AVAILABILITY
             if new_status == "Completed":
+                # Close chat
+                from core.models import ChatConversation
+                from django.utils import timezone
+                try:
+                    chat = ChatConversation.objects.get(service_request=job)
+                    chat.is_active = False
+                    chat.closed_at = timezone.now()
+                    chat.save()
+                except ChatConversation.DoesNotExist:
+                    pass
+
                 if job.payment_method == 'offline' and job.payment_status == 'pending':
                     job.payment_status = 'paid'
                     job.save()
@@ -1216,20 +1227,37 @@ def customer_tracking(request, id):
         'service_request': service_request
     })
 def start_tracking(request, id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'error', 'message': 'Not authenticated'})
+    
+    try:
+        technician = Technician_signup.objects.get(user=request.user)
+    except Technician_signup.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Not a technician'})
 
     service_request = get_object_or_404(
         ServiceRequest,
-        id=id
+        id=id,
+        technician_username=technician.username
     )
 
-    service_request.tracking_active = True
+    if service_request.status not in ['Assigned', 'In Progress']:
+        return JsonResponse({'status': 'error', 'message': 'Cannot start journey for this request'})
 
+    service_request.tracking_active = True
     service_request.save()
+
+    # Create/activate ChatConversation
+    from core.models import ChatConversation
+    chat, created = ChatConversation.objects.get_or_create(service_request=service_request, defaults={'is_active': True})
+    if not created and not chat.is_active:
+        chat.is_active = True
+        chat.closed_at = None
+        chat.save()
 
     return JsonResponse({
         'status': 'success'
     })
-
 
 def generate_invoice_pdf(service):
     print('📄 generate_invoice_pdf called for service:', service.id)
@@ -1900,6 +1928,52 @@ def submit_technician_rating(request):
             
     return JsonResponse({'status': 'error', 'message': 'Invalid request method.'})
 
+@login_required(login_url='customer_login')
+def service_request_chat(request, id):
+    from core.models import ServiceRequest, ChatConversation, ChatMessage
+    service_request = get_object_or_404(ServiceRequest, id=id)
+
+    # Determine user role
+    role = None
+    if request.user.username == service_request.customer_username:
+        role = 'customer'
+    elif request.user.username == service_request.technician_username:
+        role = 'technician'
+    
+    if not role:
+        return HttpResponseForbidden("You do not have access to this chat.")
+
+    if service_request.status == 'Pending':
+        return render(request, 'chat.html', {
+            'error': 'Chat is unavailable until a technician is assigned.',
+            'role': role,
+            'request_id': id,
+            'service_request': service_request
+        })
+
+    if service_request.status == 'Assigned' and not getattr(service_request, 'tracking_active', False):
+        return render(request, 'chat.html', {
+            'error': 'Chat is unavailable until the technician starts the journey.',
+            'role': role,
+            'request_id': id,
+            'service_request': service_request
+        })
+
+    conversation, created = ChatConversation.objects.get_or_create(
+        service_request=service_request,
+        defaults={'is_active': service_request.status != 'Completed'}
+    )
+    
+    messages = ChatMessage.objects.filter(conversation=conversation).order_by('created_at')
+
+    context = {
+        'role': role,
+        'request_id': id,
+        'service_request': service_request,
+        'conversation': conversation,
+        'chat_messages': messages,
+    }
+    return render(request, 'chat.html', context)
 @login_required(login_url='customer_login')
 def submit_complaint(request):
     if request.method == "POST":

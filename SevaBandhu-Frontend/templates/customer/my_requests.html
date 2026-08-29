@@ -495,9 +495,24 @@
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
                         Track Technician
                     </a>
+                    
+                    {% if request.tracking_active or request.status == 'In Progress' %}
+                    <a href="{% url 'service_request_chat' request.id %}" class="btn-card-action" style="background:#0284c7; color:#fff;">
+                        💬 Chat with Technician
+                    </a>
+                    {% else %}
+                    <span class="btn-card-action" style="background:#f1f5f9; color:#64748b; border: 1px solid #e2e8f0; cursor: not-allowed;" title="Chat becomes available when your technician starts the journey.">
+                        💬 Chat Unavailable
+                    </span>
+                    {% endif %}
+                    
                     {% endif %}
                     
                     {% if request.status == 'Completed' and technician %}
+                        <a href="{% url 'service_request_chat' request.id %}" class="btn-card-action btn-action-gray">
+                            💬 View Chat History
+                        </a>
+
                         {% if rating %}
                             <span class="btn-card-action" style="background:#fef9c3; color:#a16207; border:1px solid #fef08a;">
                                 ⭐ {{ rating.rating }} / 5 Rated

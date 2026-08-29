@@ -12,4 +12,9 @@ websocket_urlpatterns = [
         r'^ws/tracking/(?P<id>\d+)/$',
         consumers.RequestConsumer.as_asgi()
     ),
+
+    re_path(
+        r'^ws/chat/(?P<request_id>\d+)/$',
+        consumers.ChatConsumer.as_asgi()
+    ),
 ]
