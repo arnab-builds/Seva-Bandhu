@@ -16,7 +16,7 @@ urlpatterns = [
     path('technician/dashboard_t/', views.technician_dashboard, name='technician_dashboard'),
     path('technician/my_job/', views.technician_my_jobs, name='technician_my_jobs'),
     path('technician/update_location/', views.technician_update_location, name='technician_update_location'),
-    path('technician/update_status/', views.technician_update_status, name='technician_update_status'),
+    path('technician/update_status/<int:id>/', views.technician_update_status, name='technician_update_status'),
     path('technician/accept-request/<int:id>/', views.accept_request, name='accept_request'),
     path('technician/signup/', views.technician_sign_up, name='technician_signup'),
     path('technician/login/', views.technician_login, name='technician_login'),
@@ -24,8 +24,9 @@ urlpatterns = [
     path('technician/complete_profile/', views.technician_complete_profile, name='technician_complete_profile'),
     path('technician/api/notifications/', views.technician_api_notifications, name='technician_api_notifications'),
     path('technician/dismiss-notification/<int:id>/',views.dismiss_notification,name='dismiss_notification'),
-    path('technician/navigation/<int:id>/',views.technician_navigation,name='technician_navigation'
-),
+    path('technician/navigation/<int:id>/',views.technician_navigation,name='technician_navigation'),
+    path('technician/wallet/', views.technician_wallet_view, name='technician_wallet'),
+    path('technician/request-withdrawal/', views.technician_request_withdrawal, name='technician_request_withdrawal'),
 
     # Customer
     path('customer/dashboard/', views.customer_dashboard, name='customer_dashboard'),
@@ -93,6 +94,16 @@ urlpatterns = [
     
     path('super-admin/support-tickets/', admin_views.admin_support_tickets_list, name='admin_support_tickets_list'),
     path('super-admin/support-tickets/<int:id>/action/', admin_views.admin_support_ticket_action, name='admin_support_ticket_action'),
+    
+    # Wallet & Incentives Admin
+    path('super-admin/incentives/', admin_views.admin_incentives_list, name='admin_incentives_list'),
+    path('super-admin/incentives/add/', admin_views.admin_incentive_add, name='admin_incentive_add'),
+    path('super-admin/incentives/<int:id>/edit/', admin_views.admin_incentive_edit, name='admin_incentive_edit'),
+    path('super-admin/incentives/<int:id>/toggle/', admin_views.admin_incentive_toggle, name='admin_incentive_toggle'),
+    path('super-admin/incentives/<int:id>/delete/', admin_views.admin_incentive_delete, name='admin_incentive_delete'),
+    
+    path('super-admin/withdrawals/', admin_views.admin_withdrawals_list, name='admin_withdrawals_list'),
+    path('super-admin/withdrawals/<int:id>/action/', admin_views.admin_withdrawal_action, name='admin_withdrawal_action'),
 ]
 
 # 🔥 VERY IMPORTANT — SERVE IMAGES

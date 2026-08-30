@@ -177,6 +177,10 @@
     color: #ffffff;
 }
 
+.chat-button-hidden {
+    display: none !important;
+}
+
 .btn-action-success:hover {
     background: #15803d;
 }
@@ -271,7 +275,7 @@
 
             {% if job.status|lower != 'completed' %}
             <div class="job-actions-cluster">
-                <a href="{% url 'technician_update_status' %}" class="btn-action btn-action-outline">
+                <a href="{% url 'technician_update_status' job.id %}" class="btn-action btn-action-outline">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                     Update Job Status
                 </a>
@@ -286,7 +290,7 @@
                     Open Live Navigation Map
                 </a>
                 
-                <a href="{% url 'service_request_chat' job.id %}" id="chat-btn-{{ job.id }}" class="btn-action btn-action-primary" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); {% if not job.tracking_active and job.status != 'In Progress' %}display: none;{% endif %}">
+                <a href="{% url 'service_request_chat' job.id %}" id="chat-btn-{{ job.id }}" class="btn-action btn-action-primary chat-btn {% if not job.tracking_active and job.status != 'In Progress' %}chat-button-hidden{% endif %}" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
                     💬 Chat with Customer
                 </a>
             </div>

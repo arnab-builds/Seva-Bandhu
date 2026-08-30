@@ -106,6 +106,25 @@ def technician_dashboard(request):
     technician=technician,
     is_read=False
 )
+    from core.services.technician_wallet import TechnicianWalletService
+    from core.services.incentive_engine import IncentiveEngine
+    
+    wallet = TechnicianWalletService.get_or_create_wallet(technician)
+    active_missions = IncentiveEngine.get_active_incentives_progress(technician)
+    
+    # Calculate today's earnings (just for the summary)
+    from django.utils import timezone
+    from core.models import TechnicianWalletTransaction
+    now = timezone.localtime(timezone.now())
+    start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    from django.db.models import Sum
+    todays_earnings = TechnicianWalletTransaction.objects.filter(
+        wallet=wallet,
+        transaction_type__in=['JOB_EARNING', 'INCENTIVE'],
+        created_at__gte=start_of_day
+    ).aggregate(Sum('amount'))['amount__sum'] or 0.00
+    
     context = {
         'technician': technician,
         'assigned_jobs': assigned_jobs,
@@ -113,7 +132,10 @@ def technician_dashboard(request):
         'pending_jobs': assigned_jobs_count,
         'in_progress_jobs': in_progress_jobs,
         'completed_jobs': completed_jobs,
-        'notifications': notifications
+        'notifications': notifications,
+        'wallet': wallet,
+        'active_missions': active_missions,
+        'todays_earnings': todays_earnings
     }
     
     return render(request, 'technician/dashboard_t.html', context)
@@ -146,7 +168,7 @@ def technician_update_location(request):
     return render(request, 'technician/update_location.html')
 
 
-def technician_update_status(request):
+def technician_update_status(request, id):
     if not request.user.is_authenticated:
         return redirect('technician_login')
     
@@ -156,67 +178,71 @@ def technician_update_status(request):
         return render(request, 'technician/update_status.html', {
             'error': 'Technician profile not found.'
         })
+        
+    try:
+        job = ServiceRequest.objects.select_related('service_detail', 'service_address').get(
+            id=id,
+            technician_username=technician.username
+        )
+    except ServiceRequest.DoesNotExist:
+        return render(request, 'technician/update_status.html', {
+            'technician': technician,
+            'error': 'Job not found.'
+        })
     
     if request.method == 'POST':
-        job_id = request.POST.get('job_id')
         new_status = request.POST.get('status')
         
-        try:
-            job = ServiceRequest.objects.get(
-                id=job_id,
-                technician_username=technician.username
-            )
+        # [FIRE] UPDATE JOB STATUS
+        job.status = new_status
+        job.save()
 
-            # [FIRE] UPDATE JOB STATUS
-            job.status = new_status
-            job.save()
+        # [FIRE] MAIN FIX — HANDLE AVAILABILITY
+        if new_status == "Completed":
+            # Close chat
+            from core.models import ChatConversation
+            from django.utils import timezone
+            try:
+                chat = ChatConversation.objects.get(service_request=job)
+                chat.is_active = False
+                chat.closed_at = timezone.now()
+                chat.save()
+            except ChatConversation.DoesNotExist:
+                pass
 
-            # [FIRE] MAIN FIX — HANDLE AVAILABILITY
-            if new_status == "Completed":
-                # Close chat
-                from core.models import ChatConversation
-                from django.utils import timezone
+            if job.payment_method == 'offline' and job.payment_status == 'pending':
+                job.payment_status = 'paid'
+                job.save()
                 try:
-                    chat = ChatConversation.objects.get(service_request=job)
-                    chat.is_active = False
-                    chat.closed_at = timezone.now()
-                    chat.save()
-                except ChatConversation.DoesNotExist:
-                    pass
+                    send_invoice_email(job)
+                except Exception as e:
+                    print("[ICON] Invoice email failed:", str(e))
 
-                if job.payment_method == 'offline' and job.payment_status == 'pending':
-                    job.payment_status = 'paid'
-                    job.save()
-                    try:
-                        send_invoice_email(job)
-                    except Exception as e:
-                        print("[ICON] Invoice email failed:", str(e))
+            technician.is_available = True
+            technician.save()
+            print("[ICON] Technician is now AVAILABLE")
 
-                technician.is_available = True
-                technician.save()
-                print("[ICON] Technician is now AVAILABLE")
+            # [NEW] Job Earnings and Incentives
+            from core.services.technician_wallet import TechnicianWalletService
+            from core.services.incentive_engine import IncentiveEngine
+            
+            try:
+                TechnicianWalletService.get_or_create_wallet(technician)
+                TechnicianWalletService.credit_job_earnings(technician, job)
+                IncentiveEngine.evaluate_daily_jobs(technician)
+            except Exception as e:
+                print("[WALLET ERROR]", str(e))
 
-            elif new_status == "In Progress":
-                technician.is_available = False
-                technician.save()
-                print("🔒 Technician marked BUSY")
+        elif new_status == "In Progress":
+            technician.is_available = False
+            technician.save()
+            print("🔒 Technician marked BUSY")
 
-            return redirect('technician_my_jobs')
-
-        except ServiceRequest.DoesNotExist:
-            return render(request, 'technician/update_status.html', {
-                'technician': technician,
-                'error': 'Job not found.'
-            })
-    
-    # Fetch all jobs assigned to this technician
-    assigned_jobs = ServiceRequest.objects.filter(
-        technician_username=technician.username
-    ).select_related('service_detail', 'service_address').order_by('-created_at')
+        return redirect('technician_my_jobs')
     
     context = {
         'technician': technician,
-        'my_jobs': assigned_jobs,
+        'job': job,
     }
     
     return render(request, 'technician/update_status.html', context)
@@ -1921,6 +1947,15 @@ def submit_technician_rating(request):
                 rating=rating_val,
                 review_text=review_text
             )
+            
+            # [NEW] Evaluate Five-Star Rating Incentive
+            if rating_val == 5:
+                from core.services.incentive_engine import IncentiveEngine
+                try:
+                    IncentiveEngine.evaluate_five_star_ratings(technician)
+                except Exception as e:
+                    print("[INCENTIVE ERROR]", str(e))
+                    
             return JsonResponse({'status': 'success', 'message': 'Thank you for your rating!'})
             
         except (ValueError, ServiceRequest.DoesNotExist, Technician_signup.DoesNotExist) as e:
@@ -2002,3 +2037,48 @@ def submit_complaint(request):
             return JsonResponse({'status': 'error', 'message': str(e)})
             
     return JsonResponse({'status': 'error', 'message': 'Invalid request method.'})
+
+
+# ==========================================
+# TECHNICIAN WALLET VIEWS
+# ==========================================
+@login_required(login_url='technician_login')
+def technician_wallet_view(request):
+    try:
+        technician = Technician_signup.objects.get(user=request.user)
+    except Technician_signup.DoesNotExist:
+        return redirect('technician_login')
+
+    from core.services.technician_wallet import TechnicianWalletService
+    wallet = TechnicianWalletService.get_or_create_wallet(technician)
+
+    # Fetch transactions and withdrawals
+    transactions = wallet.transactions.all()
+    withdrawals = technician.withdrawals.all()
+    incentives = technician.incentive_awards.all()
+
+    context = {
+        'technician': technician,
+        'wallet': wallet,
+        'transactions': transactions,
+        'withdrawals': withdrawals,
+        'incentives': incentives,
+    }
+    return render(request, 'technician/wallet_t.html', context)
+
+@login_required(login_url='technician_login')
+def technician_request_withdrawal(request):
+    if request.method == "POST":
+        try:
+            technician = Technician_signup.objects.get(user=request.user)
+            amount = float(request.POST.get('amount', 0))
+            
+            from core.services.technician_wallet import TechnicianWalletService
+            TechnicianWalletService.request_withdrawal(technician, amount)
+            
+            return redirect('technician_wallet')
+        except ValueError as e:
+            print("Withdrawal Error:", str(e))
+        except Exception as e:
+            print("Withdrawal Error:", str(e))
+    return redirect('technician_wallet')

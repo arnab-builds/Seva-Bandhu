@@ -645,3 +645,148 @@ from core.models import ReferralLog
 def admin_referrals_list(request):
     referrals = ReferralLog.objects.select_related('referrer', 'referrer__user', 'referee', 'referee__user').order_by('-created_at')
     return render(request, 'admin_custom/referrals_list.html', {'referrals': referrals})
+
+# --- INCENTIVES AND WITHDRAWALS ---
+@superuser_required
+def admin_incentives_list(request):
+    from core.models import Incentive, TechnicianIncentiveAward, ServiceRequest, TechnicianRating
+    from django.db.models import Count, Sum
+    from django.utils import timezone
+    
+    incentives = Incentive.objects.all().order_by('-created_at')
+    
+    # Calculate stats per incentive
+    now = timezone.localtime(timezone.now())
+    start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    end_of_day = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    
+    # Pre-calculate distinct technicians with jobs today for DAILY incentives
+    techs_with_jobs_today = ServiceRequest.objects.filter(
+        status='Completed',
+        updated_at__gte=start_of_day,
+        updated_at__lte=end_of_day
+    ).values('technician_username').distinct().count()
+    
+    # Pre-calculate distinct technicians with 5-star ratings for RATING incentives
+    techs_with_5_stars = TechnicianRating.objects.filter(
+        rating=5
+    ).values('technician').distinct().count()
+
+    stats_list = []
+    for inc in incentives:
+        awards = TechnicianIncentiveAward.objects.filter(incentive=inc)
+        completed = awards.values('technician').distinct().count()
+        rewards_paid = awards.aggregate(Sum('reward_amount'))['reward_amount__sum'] or 0.00
+        
+        progressing = 0
+        if inc.is_active:
+            if inc.incentive_type == 'COMPLETED_JOBS_DAILY':
+                progressing = techs_with_jobs_today
+            elif inc.incentive_type == 'FIVE_STAR_RATINGS':
+                progressing = techs_with_5_stars
+                
+        # "Technicians Progressing" conceptually includes those who have completed it (they had progress > 0). 
+        # But for UI clarity, we'll just show the raw count of those who have made any progress.
+        
+        stats_list.append({
+            'incentive': inc,
+            'completed': completed,
+            'rewards_paid': rewards_paid,
+            'progressing': progressing
+        })
+
+    return render(request, 'admin_custom/incentives_list.html', {'stats_list': stats_list})
+
+from core.forms import SuperAdminIncentiveForm
+
+@superuser_required
+def admin_incentive_add(request):
+    if request.method == 'POST':
+        form = SuperAdminIncentiveForm(request.POST)
+        if form.is_valid():
+            incentive = form.save()
+            messages.success(request, f'Incentive Mission "{incentive.name}" created successfully!')
+            return redirect('admin_incentives_list')
+        else:
+            messages.error(request, 'Error creating mission. Please check the form.')
+    else:
+        form = SuperAdminIncentiveForm()
+    return render(request, 'admin_custom/incentive_form.html', {'form': form, 'title': 'Create New Mission'})
+
+@superuser_required
+def admin_incentive_edit(request, id):
+    from core.models import Incentive
+    incentive = get_object_or_404(Incentive, id=id)
+    if request.method == 'POST':
+        form = SuperAdminIncentiveForm(request.POST, instance=incentive)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Incentive Mission "{incentive.name}" updated successfully!')
+            return redirect('admin_incentives_list')
+        else:
+            messages.error(request, 'Error updating mission. Please check the form.')
+    else:
+        form = SuperAdminIncentiveForm(instance=incentive)
+    return render(request, 'admin_custom/incentive_form.html', {'form': form, 'title': f'Edit Mission: {incentive.name}'})
+
+@superuser_required
+def admin_incentive_toggle(request, id):
+    from core.models import Incentive
+    incentive = get_object_or_404(Incentive, id=id)
+    incentive.is_active = not incentive.is_active
+    incentive.save()
+    status = 'activated' if incentive.is_active else 'deactivated'
+    messages.success(request, f'Mission "{incentive.name}" has been {status}.')
+    return redirect('admin_incentives_list')
+
+@superuser_required
+def admin_incentive_delete(request, id):
+    from core.models import Incentive
+    incentive = get_object_or_404(Incentive, id=id)
+    name = incentive.name
+    incentive.delete()
+    messages.success(request, f'Mission "{name}" was permanently deleted.')
+    return redirect('admin_incentives_list')
+
+@superuser_required
+def admin_withdrawals_list(request):
+    from core.models import WithdrawalRequest
+    status_filter = request.GET.get('status', '')
+    withdrawals = WithdrawalRequest.objects.all().order_by('-requested_at')
+    
+    if status_filter:
+        withdrawals = withdrawals.filter(status=status_filter)
+        
+    paginator = Paginator(withdrawals, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'admin_custom/withdrawals_list.html', {
+        'page_obj': page_obj,
+        'status_filter': status_filter
+    })
+
+@superuser_required
+def admin_withdrawal_action(request, id):
+    if request.method == "POST":
+        from core.models import WithdrawalRequest
+        from core.services.technician_wallet import TechnicianWalletService
+        withdrawal = get_object_or_404(WithdrawalRequest, id=id)
+        
+        action = request.POST.get('action') # 'approve', 'reject', 'complete'
+        notes = request.POST.get('admin_notes', '')
+        
+        try:
+            if action == 'approve':
+                TechnicianWalletService.approve_withdrawal(withdrawal, notes)
+                messages.success(request, f'Withdrawal #{withdrawal.id} approved.')
+            elif action == 'reject':
+                TechnicianWalletService.reject_withdrawal(withdrawal, notes)
+                messages.warning(request, f'Withdrawal #{withdrawal.id} rejected and funds reversed.')
+            elif action == 'complete':
+                TechnicianWalletService.complete_withdrawal(withdrawal, notes)
+                messages.success(request, f'Withdrawal #{withdrawal.id} marked as completed.')
+        except ValueError as e:
+            messages.error(request, str(e))
+            
+    return redirect('admin_withdrawals_list')

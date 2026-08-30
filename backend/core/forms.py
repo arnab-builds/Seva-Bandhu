@@ -26,3 +26,24 @@ class SuperAdminOfferForm(forms.ModelForm):
             'per_customer_limit': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': 'Default is 1'}),
             'active': forms.CheckboxInput(attrs={'class': 'form-checkbox'}),
         }
+
+from .models import Incentive
+
+class SuperAdminIncentiveForm(forms.ModelForm):
+    class Meta:
+        model = Incentive
+        fields = [
+            'name', 'description', 'incentive_type', 'threshold', 
+            'reward_amount', 'start_date', 'end_date', 'is_repeatable', 'is_active'
+        ]
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Daily Champion'}),
+            'description': forms.Textarea(attrs={'class': 'form-input', 'rows': 3, 'placeholder': 'Optional details about the incentive'}),
+            'incentive_type': forms.Select(attrs={'class': 'form-input'}),
+            'threshold': forms.NumberInput(attrs={'class': 'form-input', 'min': '1'}),
+            'reward_amount': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01', 'min': '0'}),
+            'start_date': forms.DateTimeInput(attrs={'class': 'form-input', 'type': 'datetime-local'}),
+            'end_date': forms.DateTimeInput(attrs={'class': 'form-input', 'type': 'datetime-local'}),
+            'is_repeatable': forms.CheckboxInput(attrs={'class': 'form-checkbox'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-checkbox'}),
+        }

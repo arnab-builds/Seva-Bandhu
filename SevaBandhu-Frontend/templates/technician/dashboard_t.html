@@ -134,6 +134,17 @@ function updateNotificationCount() {
     }
 }
 
+function applyMissionProgress() {
+    document.querySelectorAll('.mission-progress-fill').forEach(el => {
+        const value = Number(el.dataset.progress || 0);
+        if (!Number.isNaN(value)) {
+            el.style.width = `${value}%`;
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', applyMissionProgress);
+
 function removeNotificationByRequest(requestId) {
     const buttons = document.querySelectorAll('[data-request-id]');
     buttons.forEach(button => {
@@ -450,6 +461,35 @@ setInterval(() => {
     box-shadow: 0 6px 18px rgba(0,0,0,0.04);
 }
 
+.mission-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    background: #ffffff;
+}
+
+.mission-card-completed {
+    background: #f0fdf4;
+}
+
+.mission-card-active {
+    background: #ffffff;
+}
+
+.mission-progress-bar {
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.mission-progress-fill {
+    height: 100%;
+    background: #2563eb;
+    width: 0;
+    transition: width 0.2s ease;
+}
+
 .notification-card-header {
     display: flex;
     justify-content: space-between;
@@ -614,6 +654,11 @@ setInterval(() => {
                 My Assigned Jobs
             </a>
 
+            <a href="{% url 'technician_wallet' %}" class="btn-action" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12V7H5a2 2 0 0 1 2-2h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+                Wallet (₹{{ wallet.available_balance|default:"0.00" }})
+            </a>
+
             {% if not technician.profile_completed %}
             <a href="{% url 'technician_complete_profile' %}" class="btn-action btn-action-outline">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -671,6 +716,87 @@ setInterval(() => {
             <div class="metric-content">
                 <div class="metric-number" id="completedJobsCount">{{ completed_jobs }}</div>
                 <div class="metric-label">Completed Jobs</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Earnings & Missions Section -->
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; margin-bottom: 32px;">
+        <!-- Earnings Summary -->
+        <div class="panel-card" style="margin-bottom: 0;">
+            <div class="panel-header">
+                <h3>Earnings Summary</h3>
+            </div>
+            <div style="padding: 16px 0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span style="color: #64748b; font-weight: 600;">Available Balance:</span>
+                    <span style="font-weight: 800; color: #0f172a;">₹{{ wallet.available_balance|default:"0.00" }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span style="color: #64748b; font-weight: 600;">Today's Earnings:</span>
+                    <span style="font-weight: 800; color: #0f172a;">₹{{ todays_earnings|default:"0.00" }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #64748b; font-weight: 600;">Total Incentives:</span>
+                    <span style="font-weight: 800; color: #15803d;">₹{{ wallet.total_incentive_earnings|default:"0.00" }}</span>
+                </div>
+            </div>
+            <div style="margin-top: 16px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+                <a href="{% url 'technician_wallet' %}" class="btn-action btn-action-primary" style="width: 100%; text-align: center; justify-content: center;">
+                    View Full Wallet
+                </a>
+            </div>
+        </div>
+
+        <!-- Active Missions -->
+        <div class="panel-card" style="margin-bottom: 0;">
+            <div class="panel-header">
+                <h3>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                    Active Missions
+                </h3>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 12px;">
+                {% if active_missions %}
+                    {% for mission in active_missions %}
+                    <div class="mission-card {% if mission.completed %}mission-card-completed{% else %}mission-card-active{% endif %}">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <div>
+                                <h4 style="margin: 0 0 4px 0; font-size: 15px; font-weight: 700; color: #0f172a;">{{ mission.name }}</h4>
+                                <p style="margin: 0; font-size: 13px; color: #64748b;">{{ mission.description }}</p>
+                            </div>
+                            <div style="background: #fef3c7; color: #b45309; font-weight: 800; font-size: 13px; padding: 4px 10px; border-radius: 6px;">
+                                Reward: ₹{{ mission.reward_amount }}
+                            </div>
+                        </div>
+
+                        {% if mission.completed %}
+                            <div style="color: #15803d; font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                Mission Completed! ₹{{ mission.reward_amount }} Earned.
+                            </div>
+                        {% else %}
+                            <div style="margin-bottom: 8px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #475569;">
+                                    <span>Progress: {{ mission.current_progress }} / {{ mission.target|default:mission.threshold }}</span>
+                                    <span>{{ mission.percentage }}%</span>
+                                </div>
+                                <div class="mission-progress-bar">
+                                    <div class="mission-progress-fill" data-progress="{{ mission.percentage }}"></div>
+                                </div>
+                            </div>
+                            <div style="font-size: 12px; font-weight: 600; color: #64748b;">
+                                {{ mission.remaining }} more to earn ₹{{ mission.reward_amount }}
+                                {% if mission.end_date %}
+                                    &nbsp;|&nbsp; Valid until {{ mission.end_date|date:"M d, Y" }}
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: #94a3b8; font-size: 14px; text-align: center; padding: 20px 0;">No active missions available.</p>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -747,7 +873,11 @@ setInterval(() => {
                 </div>
                 <div class="profile-field-item">
                     <label>Active Warnings</label>
-                    <value style="color: {% if technician.active_warning_count > 0 %}#b91c1c{% else %}#15803d{% endif %};">{{ technician.active_warning_count }}</value>
+                    {% if technician.active_warning_count > 0 %}
+                    <value style="color: #b91c1c;">{{ technician.active_warning_count }}</value>
+                    {% else %}
+                    <value style="color: #15803d;">{{ technician.active_warning_count }}</value>
+                    {% endif %}
                 </div>
                 <div class="profile-field-item">
                     <label>Email Address</label>
@@ -808,7 +938,11 @@ setInterval(() => {
         
         <div style="display:flex; flex-direction:column; gap:16px; max-height:400px; overflow-y:auto; padding-right:8px;">
             {% for warning in technician.warnings.all %}
-            <div style="background:#f8fafc; border:1px solid {% if warning.status == 'ACTIVE' %}#fca5a5{% else %}#e2e8f0{% endif %}; border-radius:12px; padding:16px;">
+            {% if warning.status == 'ACTIVE' %}
+            <div style="background:#f8fafc; border:1px solid #fca5a5; border-radius:12px; padding:16px;">
+            {% else %}
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px;">
+            {% endif %}
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
                     <div>
                         <strong style="color:#0f172a; font-size:14.5px; display:block; margin-bottom:4px;">
@@ -822,7 +956,11 @@ setInterval(() => {
                             {% endif %}
                         </span>
                     </div>
-                    <span style="font-size:11px; font-weight:700; padding:4px 8px; border-radius:6px; {% if warning.status == 'ACTIVE' %}background:#fee2e2; color:#b91c1c;{% else %}background:#f1f5f9; color:#64748b;{% endif %}">
+                    {% if warning.status == 'ACTIVE' %}
+                    <span style="font-size:11px; font-weight:700; padding:4px 8px; border-radius:6px; background:#fee2e2; color:#b91c1c;">
+                    {% else %}
+                    <span style="font-size:11px; font-weight:700; padding:4px 8px; border-radius:6px; background:#f1f5f9; color:#64748b;">
+                    {% endif %}
                         {{ warning.status }}
                     </span>
                 </div>

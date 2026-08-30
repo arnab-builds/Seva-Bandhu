@@ -486,4 +486,105 @@ class ChatMessage(models.Model):
         ordering = ['created_at']
 
     def __str__(self):
-        return f"Message by {self.sender_username} at {self.created_at}"
+        return f"Message by {self.sender_username} at {self.created_at}"
+
+
+# ==========================================
+# TECHNICIAN WALLET & INCENTIVE SYSTEM
+# ==========================================
+
+class TechnicianWallet(models.Model):
+    technician = models.OneToOneField(Technician_signup, on_delete=models.CASCADE, related_name='wallet')
+    available_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    total_earnings = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    total_incentive_earnings = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    total_withdrawn = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'TechnicianWallet'
+
+    def __str__(self):
+        return f"Wallet for {self.technician.username} - Bal: {self.available_balance}"
+
+class TechnicianWalletTransaction(models.Model):
+    TRANSACTION_TYPES = (
+        ('JOB_EARNING', 'Job Earning'),
+        ('INCENTIVE', 'Incentive'),
+        ('WITHDRAWAL', 'Withdrawal'),
+        ('REVERSAL', 'Reversal'),
+        ('ADJUSTMENT', 'Adjustment'),
+    )
+    wallet = models.ForeignKey(TechnicianWallet, on_delete=models.CASCADE, related_name='transactions')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
+    description = models.CharField(max_length=255)
+    reference_id = models.CharField(max_length=100, blank=True, null=True, help_text="ID of related ServiceRequest, Incentive, or Withdrawal")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'TechnicianWalletTransaction'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.transaction_type}: {self.amount} ({self.wallet.technician.username})"
+
+class Incentive(models.Model):
+    INCENTIVE_TYPES = (
+        ('COMPLETED_JOBS_DAILY', 'Completed Jobs Daily'),
+        ('FIVE_STAR_RATINGS', 'Five-Star Ratings'),
+    )
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    incentive_type = models.CharField(max_length=50, choices=INCENTIVE_TYPES)
+    threshold = models.IntegerField(help_text="Number of jobs, ratings, etc. required to earn this incentive")
+    reward_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    is_active = models.BooleanField(default=True)
+    start_date = models.DateTimeField(null=True, blank=True)
+    end_date = models.DateTimeField(null=True, blank=True)
+    is_repeatable = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'Incentive'
+
+    def __str__(self):
+        return self.name
+
+class TechnicianIncentiveAward(models.Model):
+    technician = models.ForeignKey(Technician_signup, on_delete=models.CASCADE, related_name='incentive_awards')
+    incentive = models.ForeignKey(Incentive, on_delete=models.CASCADE)
+    qualifying_reference = models.CharField(max_length=100, help_text="e.g., '2026-08-30' or '5_star_milestone_1' to prevent duplicates")
+    reward_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction = models.OneToOneField(TechnicianWalletTransaction, on_delete=models.SET_NULL, null=True, blank=True, related_name='incentive_award')
+    awarded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'TechnicianIncentiveAward'
+        unique_together = ('technician', 'incentive', 'qualifying_reference')
+
+    def __str__(self):
+        return f"{self.incentive.name} awarded to {self.technician.username}"
+
+class WithdrawalRequest(models.Model):
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+        ('COMPLETED', 'Completed'),
+    )
+    technician = models.ForeignKey(Technician_signup, on_delete=models.CASCADE, related_name='withdrawals')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    admin_notes = models.TextField(blank=True, null=True)
+    transaction = models.OneToOneField(TechnicianWalletTransaction, on_delete=models.SET_NULL, null=True, blank=True, related_name='withdrawal_request')
+    requested_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'WithdrawalRequest'
+        ordering = ['-requested_at']
+
+    def __str__(self):
+        return f"Withdrawal of {self.amount} by {self.technician.username} ({self.status})"

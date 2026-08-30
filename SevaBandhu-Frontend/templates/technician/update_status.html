@@ -150,8 +150,7 @@
             <p>Select the new job state to keep the customer and super admin updated in real-time.</p>
         </div>
 
-        {% if my_jobs %}
-            {% for job in my_jobs %}
+        {% if job %}
             <div class="job-summary-box">
                 <div class="summary-row">
                     <span class="summary-label">Request ID</span>
@@ -206,14 +205,9 @@
                     </a>
                 </div>
             </form>
-
-            {% if not forloop.last %}
-            <hr style="margin: 28px 0; border: none; border-top: 1px dashed #e2e8f0;">
-            {% endif %}
-            {% endfor %}
         {% else %}
             <div style="text-align:center; padding:32px 0;">
-                <p style="color:#64748b; margin-bottom:18px;">No assigned jobs found to update.</p>
+                <p style="color:#64748b; margin-bottom:18px;">Job not found or you do not have permission to view it.</p>
                 <a href="{% url 'technician_my_jobs' %}" class="status-btn status-btn-save" style="display:inline-flex; width:auto; padding:10px 20px;">
                     View Assigned Jobs
                 </a>
