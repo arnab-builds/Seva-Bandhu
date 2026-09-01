@@ -169,6 +169,27 @@ const customerMarker = L.marker([customerLat, customerLng], {
 
 const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
 const trackingSocket = new WebSocket(wsProtocol + window.location.host + '/ws/tracking/{{ service_request.id }}/');
+let latestPosition = null;
+let latestRouteMetrics = null;
+
+function publishLiveLocation() {
+    if (!latestPosition || trackingSocket.readyState !== WebSocket.OPEN) return;
+
+    const payload = {
+        type: 'live_location',
+        latitude: latestPosition.lat,
+        longitude: latestPosition.lng
+    };
+    if (latestRouteMetrics) {
+        payload.route_distance_meters = latestRouteMetrics.distanceMeters;
+        payload.route_eta_seconds = latestRouteMetrics.etaSeconds;
+    }
+    trackingSocket.send(JSON.stringify(payload));
+}
+
+// A GPS callback may precede the WebSocket handshake. Publish that retained fix
+// once the one authorized socket is ready.
+trackingSocket.addEventListener('open', publishLiveLocation);
 
 if (!("geolocation" in navigator)) {
     alert("Geolocation is not available! You must be on HTTPS or localhost to use GPS tracking.");
@@ -177,15 +198,8 @@ if (!("geolocation" in navigator)) {
     function(position) {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-
-        if (trackingSocket.readyState === WebSocket.OPEN) {
-            trackingSocket.send(JSON.stringify({
-                type: 'live_location',
-                request_id: "{{ service_request.id }}",
-                latitude: lat,
-                longitude: lng
-            }));
-        }
+        latestPosition = { lat, lng };
+        publishLiveLocation();
 
         setTimeout(() => {
             if (!window.mapInitialized) {
@@ -204,6 +218,10 @@ if (!("geolocation" in navigator)) {
             technicianMarker.setLatLng([lat, lng]);
         }
 
+        // STEP 2: Wait for FIRST VALID fresh GPS coordinate before calculating route
+        // We ensure we only calculate ONE route initially. Rerouting comes in Step 5.
+        if (lat === 0 || lng === 0 || isNaN(lat) || isNaN(lng)) return;
+
         if (!window.routeControl) {
             window.routeControl = L.Routing.control({
                 createMarker: function() { return null; },
@@ -220,18 +238,29 @@ if (!("geolocation" in navigator)) {
 
             window.routeControl.on('routesfound', function(e) {
                 const route = e.routes[0];
-                const distance = (route.summary.totalDistance / 1000).toFixed(2);
-                const time = Math.round(route.summary.totalTime / 60);
+                const distanceMeters = Number(route.summary.totalDistance);
+                const etaSeconds = Number(route.summary.totalTime);
+                const distance = (distanceMeters / 1000).toFixed(2);
+                const time = Math.ceil(etaSeconds / 60);
+                
+                // Safety: Do not display fake 0 km / 0 min if the route failed
+                if (!Number.isFinite(distanceMeters) || !Number.isFinite(etaSeconds) || distanceMeters < 0 || etaSeconds < 0) return;
+
+                latestRouteMetrics = { distanceMeters, etaSeconds };
+                publishLiveLocation();
 
                 document.getElementById('journey-info').innerHTML =
                     `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${time} mins away • ${distance} km remaining to Customer`;
+                
+                // Note: Step 3 will add turn-by-turn instruction extraction here.
             });
-        } else {
-            window.routeControl.setWaypoints([
-                L.latLng(lat, lng),
-                L.latLng(customerLat, customerLng)
-            ]);
+            
+            window.routeControl.on('routingerror', function(err) {
+                console.error("OSRM Routing Error:", err);
+                document.getElementById('journey-info').innerHTML = "Live tracking active. Route temporarily unavailable.";
+            });
         }
+        // Removed the 'else { routeControl.setWaypoints(...) }' which caused OSRM spam on every GPS update.
 
         if (!window.mapCentered) {
             map.panTo([lat, lng]);

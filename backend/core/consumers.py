@@ -1,5 +1,7 @@
 import json
+import math
 
+from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 
@@ -11,31 +13,44 @@ class RequestConsumer(AsyncJsonWebsocketConsumer):
 
     async def connect(self):
 
-        print("[ICON] SOCKET CONNECTED")
+        self.user = self.scope["user"]
+        if not self.user.is_authenticated:
+            await self.close(code=4401)
+            return
 
         #################################################
         # TECHNICIAN GROUP
         #################################################
 
-        self.group_name = 'technicians'
-
-        await self.channel_layer.group_add(
-            self.group_name,
-            self.channel_name
-        )
-
-        #################################################
-        # REQUEST-SPECIFIC TRACKING GROUP
-        #################################################
-
         self.request_id = self.scope['url_route']['kwargs'].get('id')
+        self.is_tracking_connection = bool(self.request_id)
 
-        if self.request_id:
+        if self.is_tracking_connection:
+            self.service_request = await self.get_service_request(self.request_id)
+            if not self.service_request:
+                await self.close(code=4404)
+                return
+
+            self.role = await self.get_tracking_role(self.user, self.service_request)
+            if not self.role:
+                await self.close(code=4403)
+                return
 
             self.tracking_group_name = f"tracking_{self.request_id}"
 
             await self.channel_layer.group_add(
                 self.tracking_group_name,
+                self.channel_name
+            )
+        else:
+            # /ws/requests/ is the technician dashboard notification channel.
+            if not await self.is_technician(self.user):
+                await self.close(code=4403)
+                return
+
+            self.group_name = 'technicians'
+            await self.channel_layer.group_add(
+                self.group_name,
                 self.channel_name
             )
 
@@ -53,6 +68,81 @@ class RequestConsumer(AsyncJsonWebsocketConsumer):
             'message': 'Connected'
         }))
 
+        # A newly opened or refreshed customer page must immediately receive
+        # the latest authorized technician position; it should not have to wait
+        # for the next physical GPS movement.
+        if self.is_tracking_connection and self.role == 'customer':
+            snapshot = self.tracking_snapshot(self.service_request)
+            if snapshot:
+                await self.send_json(snapshot)
+
+    @database_sync_to_async
+    def get_service_request(self, request_id):
+        from core.models import ServiceRequest
+
+        try:
+            return ServiceRequest.objects.get(id=request_id)
+        except ServiceRequest.DoesNotExist:
+            return None
+
+    @database_sync_to_async
+    def get_tracking_role(self, user, service_request):
+        """Return the participant role only when the logged-in user owns it."""
+        from core.models import Technician_signup, customer_signup
+
+        customer = customer_signup.objects.filter(user=user).first()
+        if customer and customer.username == service_request.customer_username:
+            return 'customer'
+
+        technician = Technician_signup.objects.filter(user=user).first()
+        if technician and technician.username == service_request.technician_username:
+            return 'technician'
+
+        return None
+
+    @database_sync_to_async
+    def is_technician(self, user):
+        from core.models import Technician_signup
+
+        return Technician_signup.objects.filter(user=user).exists()
+
+    @database_sync_to_async
+    def save_tracking_snapshot(self, request_id, user, latitude, longitude,
+                               route_distance_meters, route_eta_seconds):
+        """Authorize and persist the latest location in the same DB operation."""
+        from core.models import ServiceRequest, Technician_signup
+        from django.utils import timezone
+
+        try:
+            service_request = ServiceRequest.objects.get(id=request_id)
+        except ServiceRequest.DoesNotExist:
+            return None
+
+        technician = Technician_signup.objects.filter(user=user).first()
+        if not (
+            technician
+            and technician.username == service_request.technician_username
+            and service_request.tracking_active
+            and service_request.status != 'Completed'
+        ):
+            return None
+
+        service_request.technician_latitude = latitude
+        service_request.technician_longitude = longitude
+        service_request.tracking_updated_at = timezone.now()
+        update_fields = [
+            'technician_latitude', 'technician_longitude', 'tracking_updated_at'
+        ]
+        if route_distance_meters is not None:
+            service_request.route_distance_meters = route_distance_meters
+            update_fields.append('route_distance_meters')
+        if route_eta_seconds is not None:
+            service_request.route_eta_seconds = route_eta_seconds
+            update_fields.append('route_eta_seconds')
+        service_request.save(update_fields=update_fields)
+
+        return self.tracking_snapshot(service_request)
+
     #########################################################
     # DISCONNECT
     #########################################################
@@ -65,10 +155,11 @@ class RequestConsumer(AsyncJsonWebsocketConsumer):
         # REMOVE TECHNICIAN GROUP
         #################################################
 
-        await self.channel_layer.group_discard(
-            self.group_name,
-            self.channel_name
-        )
+        if hasattr(self, 'group_name'):
+            await self.channel_layer.group_discard(
+                self.group_name,
+                self.channel_name
+            )
 
         #################################################
         # REMOVE TRACKING GROUP
@@ -122,7 +213,10 @@ class RequestConsumer(AsyncJsonWebsocketConsumer):
 
     async def receive(self, text_data):
 
-        data = json.loads(text_data)
+        try:
+            data = json.loads(text_data)
+        except (TypeError, json.JSONDecodeError):
+            return
 
         print("[ICON] RECEIVED:", data)
 
@@ -130,36 +224,80 @@ class RequestConsumer(AsyncJsonWebsocketConsumer):
         # LIVE LOCATION TRACKING
         ##################################
         if data.get('type') == 'live_location':
+            if not getattr(self, 'is_tracking_connection', False):
+                return
 
-            latitude = data.get('latitude')
-            longitude = data.get('longitude')
-            request_id = data.get('request_id')
+            latitude = self.valid_coordinate(data.get('latitude'), -90, 90)
+            longitude = self.valid_coordinate(data.get('longitude'), -180, 180)
 
-            print(
-                "[ICON] LIVE GPS:",
+            if latitude is None or longitude is None:
+                return
+
+            route_distance_meters = self.valid_nonnegative_number(
+                data.get('route_distance_meters'), 10_000_000
+            )
+            route_eta_seconds = self.valid_nonnegative_number(
+                data.get('route_eta_seconds'), 86_400
+            )
+            snapshot = await self.save_tracking_snapshot(
+                self.request_id,
+                self.user,
                 latitude,
                 longitude,
-                "REQUEST:",
-                request_id
+                route_distance_meters,
+                route_eta_seconds,
             )
+            if not snapshot:
+                return
 
             #################################################
             # SEND TO REQUEST-SPECIFIC TRACKING GROUP
             #################################################
 
-            if request_id:
+            await self.channel_layer.group_send(
+                self.tracking_group_name,
+                snapshot
+            )
 
-                await self.channel_layer.group_send(
+    @staticmethod
+    def valid_coordinate(value, minimum, maximum):
+        # JSON booleans are subclasses of int in Python, but are not coordinates.
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return None
+        value = float(value)
+        if not math.isfinite(value) or not minimum <= value <= maximum:
+            return None
+        return value
 
-                    f"tracking_{request_id}",
+    @staticmethod
+    def valid_nonnegative_number(value, maximum):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return None
+        value = float(value)
+        if not math.isfinite(value) or not 0 <= value <= maximum:
+            return None
+        return value
 
-                    {
-                        'type': 'location_update',
+    @classmethod
+    def tracking_snapshot(cls, service_request):
+        latitude = cls.valid_coordinate(service_request.technician_latitude, -90, 90)
+        longitude = cls.valid_coordinate(service_request.technician_longitude, -180, 180)
+        if latitude is None or longitude is None:
+            return None
 
-                        'latitude': latitude,
-                        'longitude': longitude,
-                    }
-                )
+        snapshot = {
+            'type': 'location_update',
+            'latitude': latitude,
+            'longitude': longitude,
+        }
+        distance = cls.valid_nonnegative_number(
+            service_request.route_distance_meters, 10_000_000
+        )
+        eta = cls.valid_nonnegative_number(service_request.route_eta_seconds, 86_400)
+        if distance is not None and eta is not None:
+            snapshot['route_distance_meters'] = distance
+            snapshot['route_eta_seconds'] = eta
+        return snapshot
 
     #########################################################
     # SEND LIVE LOCATION TO CUSTOMER
@@ -167,16 +305,7 @@ class RequestConsumer(AsyncJsonWebsocketConsumer):
 
     async def location_update(self, event):
 
-        await self.send(text_data=json.dumps({
-
-            'type': 'location_update',
-
-            'latitude': event['latitude'],
-            'longitude': event['longitude'],
-
-        }))
-
-from channels.db import database_sync_to_async
+        await self.send_json(event)
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
     
@@ -335,4 +464,4 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             'sender_username': event['sender_username'],
             'message': event['message'],
             'created_at': event['created_at']
-        }))
+        }))

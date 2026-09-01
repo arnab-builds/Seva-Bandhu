@@ -318,8 +318,6 @@
 </div>
 
 <script>
-let trackingSocket = null;
-
 function startJourney(jobId) {
     fetch(`/technician/start-tracking/${jobId}/`, {
         method: "POST",
@@ -331,52 +329,18 @@ function startJourney(jobId) {
     .then(res => res.json())
     .then(data => {
         if (data.status === "success") {
-            alert("🚀 Journey Started! Broadcasting live GPS coordinates. Chat is now active.");
+            alert("🚀 Journey Started! Opening live navigation. Chat is now active.");
             
             // Reveal chat button safely without reloading to preserve websocket
             const chatBtn = document.getElementById("chat-btn-" + jobId);
             if (chatBtn) chatBtn.style.display = "flex";
 
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    console.log("✅ GPS Access Granted");
-                    startLiveTracking(jobId);
-                },
-                (error) => {
-                    console.error("❌ GPS Error:", error);
-                    alert("Please allow location permission.");
-                }
-            );
+            // Navigation owns the only journey GPS watcher and tracking socket.
+            window.location.assign(`/technician/navigation/${jobId}/`);
         } else {
             alert("Error: " + data.message);
         }
     });
-}
-
-function startLiveTracking(jobId) {
-    const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-    trackingSocket = new WebSocket(wsProtocol + window.location.host + `/ws/tracking/${jobId}/`);
-
-    trackingSocket.onopen = function() {
-        console.log("✅ TRACKING SOCKET CONNECTED");
-        navigator.geolocation.watchPosition(
-            (position) => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-
-                if (trackingSocket.readyState === WebSocket.OPEN) {
-                    trackingSocket.send(JSON.stringify({
-                        type: 'live_location',
-                        request_id: jobId,
-                        latitude: lat,
-                        longitude: lng
-                    }));
-                }
-            },
-            (error) => console.error("❌ GPS ERROR:", error),
-            { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
-        );
-    };
 }
 
 function getCSRFToken() {

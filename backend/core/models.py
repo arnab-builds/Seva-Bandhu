@@ -161,6 +161,11 @@ class ServiceRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     tracking_active = models.BooleanField(default=False)
+    technician_latitude = models.FloatField(null=True, blank=True)
+    technician_longitude = models.FloatField(null=True, blank=True)
+    route_distance_meters = models.FloatField(null=True, blank=True)
+    route_eta_seconds = models.FloatField(null=True, blank=True)
+    tracking_updated_at = models.DateTimeField(null=True, blank=True)
     
     customer_latitude = models.FloatField(
         null=True,
@@ -587,4 +592,4 @@ class WithdrawalRequest(models.Model):
         ordering = ['-requested_at']
 
     def __str__(self):
-        return f"Withdrawal of {self.amount} by {self.technician.username} ({self.status})"
+        return f"Withdrawal of {self.amount} by {self.technician.username} ({self.status})"

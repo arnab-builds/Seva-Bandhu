@@ -1401,8 +1401,18 @@ def invoice_pdf(request, service_id):
     return response
 
 def technician_navigation(request, id):
+    if not request.user.is_authenticated:
+        return redirect('technician_login')
 
-    service_request = ServiceRequest.objects.get(id=id)
+    technician = get_object_or_404(Technician_signup, user=request.user)
+    service_request = get_object_or_404(
+        ServiceRequest,
+        id=id,
+        technician_username=technician.username,
+    )
+
+    if not service_request.tracking_active or service_request.status == 'Completed':
+        return HttpResponseForbidden('Navigation is available only during an active journey.')
 
     return render(
 
