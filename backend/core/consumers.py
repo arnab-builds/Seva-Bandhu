@@ -108,7 +108,7 @@ class RequestConsumer(AsyncJsonWebsocketConsumer):
 
     @database_sync_to_async
     def save_tracking_snapshot(self, request_id, user, latitude, longitude,
-                               route_distance_meters, route_eta_seconds):
+                               route_distance_meters, route_eta_seconds, tracking_arrived):
         """Authorize and persist the latest location in the same DB operation."""
         from core.models import ServiceRequest, Technician_signup
         from django.utils import timezone
@@ -131,8 +131,9 @@ class RequestConsumer(AsyncJsonWebsocketConsumer):
         service_request.technician_longitude = longitude
         service_request.tracking_updated_at = timezone.now()
         update_fields = [
-            'technician_latitude', 'technician_longitude', 'tracking_updated_at'
+            'technician_latitude', 'technician_longitude', 'tracking_updated_at', 'tracking_arrived'
         ]
+        service_request.tracking_arrived = tracking_arrived
         if route_distance_meters is not None:
             service_request.route_distance_meters = route_distance_meters
             update_fields.append('route_distance_meters')
@@ -239,6 +240,7 @@ class RequestConsumer(AsyncJsonWebsocketConsumer):
             route_eta_seconds = self.valid_nonnegative_number(
                 data.get('route_eta_seconds'), 86_400
             )
+            tracking_arrived = data.get('journey_status') == 'arrived'
             snapshot = await self.save_tracking_snapshot(
                 self.request_id,
                 self.user,
@@ -246,6 +248,7 @@ class RequestConsumer(AsyncJsonWebsocketConsumer):
                 longitude,
                 route_distance_meters,
                 route_eta_seconds,
+                tracking_arrived,
             )
             if not snapshot:
                 return
@@ -289,6 +292,7 @@ class RequestConsumer(AsyncJsonWebsocketConsumer):
             'type': 'location_update',
             'latitude': latitude,
             'longitude': longitude,
+            'journey_status': 'arrived' if service_request.tracking_arrived else 'on_the_way',
         }
         distance = cls.valid_nonnegative_number(
             service_request.route_distance_meters, 10_000_000

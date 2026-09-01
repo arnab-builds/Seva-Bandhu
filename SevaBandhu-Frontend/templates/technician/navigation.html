@@ -87,7 +87,7 @@
 }
 
 #map {
-    height: 600px;
+    height: 540px;
     width: 100%;
     border-radius: 16px;
     overflow: hidden;
@@ -95,8 +95,56 @@
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
 }
 
+.navigation-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 24px;
+    align-items: start;
+}
+
+.route-assistant {
+    height: 480px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    background: linear-gradient(155deg, #f8fbff 0%, #ffffff 48%, #f5f3ff 100%);
+    border: 1px solid #c7d9f7;
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 16px 36px rgba(37, 99, 235, 0.12);
+    position: relative;
+}
+
+.assistant-column { display: grid; gap: 10px; align-content: start; }
+
+.route-assistant::before { content: ''; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, #2563eb, #7c3aed, #06b6d4); }
+
+.assistant-eyebrow { margin: 4px 0 4px; color: #4f46e5; font-size: 10px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.route-assistant h2 { margin: 0; color: #172554; font-size: 20px; letter-spacing: -.02em; }
+.route-assistant > p { margin: 4px 0 13px; color: #64748b; font-size: 12px; }
+.assistant-section { border-top: 1px solid #dbe7f5; padding: 12px 0; }
+.assistant-section:last-child { padding-bottom: 0; }
+.assistant-section h3 { margin: 0 0 8px; font-size: 10px; color: #475569; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+.route-facts { display: grid; gap: 7px; margin: 0; }
+.route-facts div { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: rgba(255,255,255,.9); border: 1px solid #e0e7ff; border-radius: 8px; padding: 6px 9px; font-size: 12px; }
+.route-facts dt { color: #64748b; }
+.route-facts dd { margin: 0; color: #0f172a; font-weight: 800; text-align: right; }
+.instruction-card { background: linear-gradient(135deg, #1d4ed8, #7c3aed); border: 0; border-radius: 12px; padding: 13px; box-shadow: 0 9px 18px rgba(79, 70, 229, .22); }
+.next-instruction { margin: 0; color: #fff; font-size: 15px; font-weight: 900; line-height: 1.35; }
+.next-distance { margin: 6px 0 0; color: #dbeafe; font-size: 12px; font-weight: 800; }
+.route-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.route-steps li { border-left: 3px solid #8b5cf6; background: #fff; border-radius: 0 8px 8px 0; padding: 6px 8px; color: #334155; font-size: 12px; line-height: 1.3; }
+.route-steps small { display: block; color: #64748b; margin-top: 2px; }
+.assistant-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.assistant-actions-external { padding: 0 2px; }
+.assistant-button { border: 0; border-radius: 9px; background: linear-gradient(135deg, #2563eb, #4f46e5); color: #fff; padding: 9px 8px; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 10px rgba(37,99,235,.18); }
+.assistant-button:hover { filter: brightness(1.08); }
+.assistant-button + .assistant-button { background: #fff; border: 1px solid #bfdbfe; color: #1d4ed8; box-shadow: none; }
+.assistant-status { margin: 0; color: #64748b; font-size: 12px; line-height: 1.5; }
+
 @media (max-width: 768px) {
     #map { height: 440px; }
+    .navigation-layout { grid-template-columns: 1fr; }
+    .route-assistant { height: min(480px, 65vh); }
 }
 </style>
 
@@ -123,8 +171,49 @@
         Calculating live route &amp; ETA...
     </div>
 
-    <!-- Map Container -->
-    <div id="map"></div>
+    <div class="navigation-layout">
+        <div id="map"></div>
+
+        <div class="assistant-column">
+        <aside class="route-assistant" aria-live="polite">
+            <div class="assistant-eyebrow">Live navigation</div>
+            <h2>Route Assistant</h2>
+            <p>Live guidance from the active road route.</p>
+
+            <section class="assistant-section">
+                <h3>Route summary</h3>
+                <dl class="route-facts">
+                    <div><dt>Status</dt><dd id="assistant-route-status">Waiting for GPS</dd></div>
+                    <div><dt>Estimated time</dt><dd id="assistant-eta">—</dd></div>
+                    <div><dt>Road distance</dt><dd id="assistant-distance">—</dd></div>
+                    <div><dt>Arrival</dt><dd id="assistant-arrival">—</dd></div>
+                    <div><dt>Traffic</dt><dd>Unavailable</dd></div>
+                </dl>
+            </section>
+
+            <section class="assistant-section">
+                <h3>Next instruction</h3>
+                <div class="instruction-card">
+                <p id="assistant-next-instruction" class="next-instruction">Waiting for a route…</p>
+                <p id="assistant-next-distance" class="next-distance"></p>
+                </div>
+            </section>
+
+            <section class="assistant-section">
+                <h3>Route steps</h3>
+                <ol id="assistant-route-steps" class="route-steps">
+                    <li>Route steps will appear after the route is calculated.</li>
+                </ol>
+            </section>
+
+            <p id="assistant-status" class="assistant-status">Live location tracking continues even if routing is unavailable.</p>
+        </aside>
+        <div class="assistant-actions assistant-actions-external">
+            <button id="voice-toggle" type="button" class="assistant-button">Voice ON</button>
+            <button id="recalculate-route" type="button" class="assistant-button">Recalculate route</button>
+        </div>
+        </div>
+    </div>
 
 </div>
 
@@ -171,6 +260,166 @@ const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
 const trackingSocket = new WebSocket(wsProtocol + window.location.host + '/ws/tracking/{{ service_request.id }}/');
 let latestPosition = null;
 let latestRouteMetrics = null;
+let latestRoute = null;
+let lastAcceptedPosition = null;
+let voiceEnabled = false;
+let lastSpokenInstruction = '';
+let currentVoiceInstruction = '';
+let hasArrived = false;
+const ARRIVAL_ENTER_METERS = 100;
+const ARRIVAL_EXIT_METERS = 150;
+const GPS_JITTER_MIN_METERS = 25;
+const GPS_MAX_ACCEPTABLE_ACCURACY_METERS = 200;
+
+function formatDistance(meters) {
+    return meters >= 1000 ? `${(meters / 1000).toFixed(2)} km` : `${Math.round(meters)} m`;
+}
+
+function formatDuration(seconds) {
+    const minutes = Math.ceil(seconds / 60);
+    return minutes ? `${minutes} min` : 'Under 1 min';
+}
+
+function speakGuidance(text) {
+    if (!voiceEnabled || !text) return;
+    if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance !== 'function') {
+        document.getElementById('assistant-status').textContent = 'Voice guidance is unavailable in this browser.';
+        return;
+    }
+
+    try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = navigator.language || 'en-IN';
+        utterance.rate = 1;
+        utterance.onstart = () => {
+            document.getElementById('assistant-status').textContent = 'Speaking navigation guidance.';
+        };
+        utterance.onerror = () => {
+            document.getElementById('assistant-status').textContent = 'Voice could not play. Check browser sound and try Voice ON again.';
+        };
+        window.speechSynthesis.resume();
+        window.speechSynthesis.speak(utterance);
+        lastSpokenInstruction = text;
+    } catch (error) {
+        console.error('Voice guidance error:', error);
+        document.getElementById('assistant-status').textContent = 'Voice could not start. Check browser sound and try again.';
+    }
+}
+
+function distanceBetweenMeters(lat1, lng1, lat2, lng2) {
+    const radians = (value) => value * Math.PI / 180;
+    const earthRadius = 6371000;
+    const deltaLat = radians(lat2 - lat1);
+    const deltaLng = radians(lng2 - lng1);
+    const a = Math.sin(deltaLat / 2) ** 2
+        + Math.cos(radians(lat1)) * Math.cos(radians(lat2)) * Math.sin(deltaLng / 2) ** 2;
+    return 2 * earthRadius * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function shouldAcceptGpsPosition(lat, lng, accuracy) {
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat === 0 || lng === 0 || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+        return false;
+    }
+    if (Number.isFinite(accuracy) && accuracy > GPS_MAX_ACCEPTABLE_ACCURACY_METERS && lastAcceptedPosition) {
+        return false;
+    }
+    if (!lastAcceptedPosition) return true;
+
+    const movement = distanceBetweenMeters(lat, lng, lastAcceptedPosition.lat, lastAcceptedPosition.lng);
+    // GPS, especially Wi-Fi/desktop GPS, can drift tens of metres while still.
+    // Ignore that noise until the position changes enough to be meaningful.
+    const jitterThreshold = Math.max(
+        GPS_JITTER_MIN_METERS,
+        Number.isFinite(accuracy) ? Math.min(50, accuracy * 0.5) : 0
+    );
+    return movement >= jitterThreshold;
+}
+
+function showArrivalState() {
+    document.getElementById('journey-info').textContent = 'Arrived at customer location';
+    document.getElementById('assistant-route-status').textContent = 'Arrived at customer location';
+    document.getElementById('assistant-eta').textContent = 'Arrived';
+    document.getElementById('assistant-arrival').textContent = 'Now';
+    document.getElementById('assistant-next-instruction').textContent = 'You have arrived at the customer location.';
+    document.getElementById('assistant-next-distance').textContent = '';
+    document.getElementById('assistant-status').textContent =
+        'Arrival is based on GPS proximity. Complete the service through the existing workflow when ready.';
+
+    const arrivalMessage = 'You have arrived at the customer location.';
+    if (lastSpokenInstruction !== arrivalMessage) speakGuidance(arrivalMessage);
+}
+
+function updateArrivalState(lat, lng) {
+    const straightLineDistance = distanceBetweenMeters(lat, lng, customerLat, customerLng);
+    const wasArrived = hasArrived;
+    if (straightLineDistance <= ARRIVAL_ENTER_METERS) {
+        hasArrived = true;
+    } else if (straightLineDistance > ARRIVAL_EXIT_METERS) {
+        hasArrived = false;
+    }
+    if (hasArrived) showArrivalState();
+    else if (wasArrived && latestRoute) renderRouteAssistant(latestRoute);
+}
+
+function renderRouteAssistant(route) {
+    const distanceMeters = Number(route.summary.totalDistance);
+    const etaSeconds = Number(route.summary.totalTime);
+    const instructions = Array.isArray(route.instructions) ? route.instructions : [];
+    const nextInstruction = instructions.find((instruction) => instruction.text) || null;
+
+    document.getElementById('assistant-route-status').textContent = 'Optimal route ready';
+    document.getElementById('assistant-eta').textContent = formatDuration(etaSeconds);
+    document.getElementById('assistant-distance').textContent = formatDistance(distanceMeters);
+    document.getElementById('assistant-arrival').textContent = new Date(Date.now() + etaSeconds * 1000)
+        .toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    document.getElementById('assistant-status').textContent =
+        'Route data is supplied by the road-routing service. Traffic data is unavailable.';
+
+    const nextText = nextInstruction ? nextInstruction.text : 'Continue on the current route';
+    currentVoiceInstruction = nextText;
+    document.getElementById('assistant-next-instruction').textContent = nextText;
+    document.getElementById('assistant-next-distance').textContent = nextInstruction && Number.isFinite(Number(nextInstruction.distance))
+        ? `In ${formatDistance(Number(nextInstruction.distance))}`
+        : '';
+
+    const steps = document.getElementById('assistant-route-steps');
+    steps.replaceChildren();
+    const usableInstructions = instructions.filter((instruction) => instruction.text);
+    const displayedInstructions = usableInstructions.length > 4
+        ? [...usableInstructions.slice(0, 3), usableInstructions[usableInstructions.length - 1]]
+        : usableInstructions;
+    displayedInstructions.forEach((instruction, index) => {
+        if (!instruction.text) return;
+        const item = document.createElement('li');
+        const text = document.createElement('span');
+        text.textContent = `${index + 1}. ${instruction.text}`;
+        item.appendChild(text);
+        if (Number.isFinite(Number(instruction.distance))) {
+            const detail = document.createElement('small');
+            detail.textContent = formatDistance(Number(instruction.distance));
+            item.appendChild(detail);
+        }
+        steps.appendChild(item);
+    });
+    if (!steps.children.length) {
+        const item = document.createElement('li');
+        item.textContent = 'The route provider did not return turn-by-turn steps.';
+        steps.appendChild(item);
+    }
+    if (usableInstructions.length > displayedInstructions.length) {
+        const item = document.createElement('li');
+        item.textContent = `+ ${usableInstructions.length - displayedInstructions.length} more steps on the route`;
+        steps.appendChild(item);
+    }
+
+    if (hasArrived) {
+        showArrivalState();
+        return;
+    }
+
+    if (nextText !== lastSpokenInstruction) speakGuidance(nextText);
+}
 
 function publishLiveLocation() {
     if (!latestPosition || trackingSocket.readyState !== WebSocket.OPEN) return;
@@ -184,12 +433,43 @@ function publishLiveLocation() {
         payload.route_distance_meters = latestRouteMetrics.distanceMeters;
         payload.route_eta_seconds = latestRouteMetrics.etaSeconds;
     }
+    payload.journey_status = hasArrived ? 'arrived' : 'on_the_way';
     trackingSocket.send(JSON.stringify(payload));
 }
 
 // A GPS callback may precede the WebSocket handshake. Publish that retained fix
 // once the one authorized socket is ready.
 trackingSocket.addEventListener('open', publishLiveLocation);
+
+document.getElementById('voice-toggle').addEventListener('click', function() {
+    if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance !== 'function') {
+        document.getElementById('assistant-status').textContent = 'Voice guidance is unavailable in this browser.';
+        return;
+    }
+    voiceEnabled = !voiceEnabled;
+    this.textContent = voiceEnabled ? 'Voice OFF' : 'Voice ON';
+    document.getElementById('assistant-status').textContent = voiceEnabled
+        ? 'Voice guidance is enabled.'
+        : 'Voice guidance is muted.';
+    if (voiceEnabled) {
+        const message = hasArrived
+            ? 'You have arrived at the customer location.'
+            : currentVoiceInstruction;
+        if (message) speakGuidance(message);
+        else document.getElementById('assistant-status').textContent = 'Voice is enabled. Guidance will begin after the route is ready.';
+    } else {
+        window.speechSynthesis.cancel();
+    }
+});
+
+document.getElementById('recalculate-route').addEventListener('click', function() {
+    if (!latestPosition || !window.routeControl) return;
+    document.getElementById('assistant-route-status').textContent = 'Recalculating route…';
+    window.routeControl.setWaypoints([
+        L.latLng(latestPosition.lat, latestPosition.lng),
+        L.latLng(customerLat, customerLng)
+    ]);
+});
 
 if (!("geolocation" in navigator)) {
     alert("Geolocation is not available! You must be on HTTPS or localhost to use GPS tracking.");
@@ -198,8 +478,16 @@ if (!("geolocation" in navigator)) {
     function(position) {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
+        const accuracy = Number(position.coords.accuracy);
+        if (!shouldAcceptGpsPosition(lat, lng, accuracy)) return;
+
+        lastAcceptedPosition = { lat, lng, accuracy };
         latestPosition = { lat, lng };
+        updateArrivalState(lat, lng);
         publishLiveLocation();
+        if (!window.routeControl) {
+            document.getElementById('assistant-route-status').textContent = 'Calculating route…';
+        }
 
         setTimeout(() => {
             if (!window.mapInitialized) {
@@ -238,6 +526,7 @@ if (!("geolocation" in navigator)) {
 
             window.routeControl.on('routesfound', function(e) {
                 const route = e.routes[0];
+                latestRoute = route;
                 const distanceMeters = Number(route.summary.totalDistance);
                 const etaSeconds = Number(route.summary.totalTime);
                 const distance = (distanceMeters / 1000).toFixed(2);
@@ -248,8 +537,9 @@ if (!("geolocation" in navigator)) {
 
                 latestRouteMetrics = { distanceMeters, etaSeconds };
                 publishLiveLocation();
+                renderRouteAssistant(route);
 
-                document.getElementById('journey-info').innerHTML =
+                if (!hasArrived) document.getElementById('journey-info').innerHTML =
                     `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${time} mins away • ${distance} km remaining to Customer`;
                 
                 // Note: Step 3 will add turn-by-turn instruction extraction here.
@@ -258,6 +548,8 @@ if (!("geolocation" in navigator)) {
             window.routeControl.on('routingerror', function(err) {
                 console.error("OSRM Routing Error:", err);
                 document.getElementById('journey-info').innerHTML = "Live tracking active. Route temporarily unavailable.";
+                document.getElementById('assistant-route-status').textContent = 'Route temporarily unavailable';
+                document.getElementById('assistant-status').textContent = 'Live location tracking remains active.';
             });
         }
         // Removed the 'else { routeControl.setWaypoints(...) }' which caused OSRM spam on every GPS update.

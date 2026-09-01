@@ -228,6 +228,12 @@ socket.onmessage = function(event) {
 
             map.panTo([lat, lng]);
 
+            if (data.journey_status === 'arrived') {
+                document.getElementById('journey-info').textContent = 'Technician has arrived at your location';
+                document.getElementById('tracking-status').innerHTML = '<span style="width:7px; height:7px; background:#16a34a; border-radius:50%;"></span> Technician has arrived';
+                return;
+            }
+
             const distanceMeters = Number(data.route_distance_meters);
             const etaSeconds = Number(data.route_eta_seconds);
             if (Number.isFinite(distanceMeters) && distanceMeters >= 0 && Number.isFinite(etaSeconds) && etaSeconds >= 0) {

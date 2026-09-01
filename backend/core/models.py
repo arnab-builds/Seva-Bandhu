@@ -165,6 +165,7 @@ class ServiceRequest(models.Model):
     technician_longitude = models.FloatField(null=True, blank=True)
     route_distance_meters = models.FloatField(null=True, blank=True)
     route_eta_seconds = models.FloatField(null=True, blank=True)
+    tracking_arrived = models.BooleanField(default=False)
     tracking_updated_at = models.DateTimeField(null=True, blank=True)
     
     customer_latitude = models.FloatField(
