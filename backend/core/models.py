@@ -594,3 +594,62 @@ class WithdrawalRequest(models.Model):
 
     def __str__(self):
         return f"Withdrawal of {self.amount} by {self.technician.username} ({self.status})"
+
+# ==========================================
+# TECHNICIAN SUPPORT SYSTEM
+# ==========================================
+
+class TechnicianSupportTicket(models.Model):
+    STATUS_CHOICES = (
+        ('OPEN', 'Open'),
+        ('IN_PROGRESS', 'In Progress'),
+        ('RESOLVED', 'Resolved'),
+        ('CLOSED', 'Closed'),
+    )
+    technician = models.ForeignKey(Technician_signup, on_delete=models.CASCADE, related_name='tech_support_tickets')
+    category = models.CharField(max_length=100)
+    subject = models.CharField(max_length=255, blank=True, null=True)
+    issue = models.CharField(max_length=255, blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='OPEN')
+    priority = models.CharField(max_length=20, default='Normal')
+    
+    related_service_request = models.ForeignKey(ServiceRequest, on_delete=models.SET_NULL, null=True, blank=True)
+    related_wallet_transaction = models.ForeignKey(TechnicianWalletTransaction, on_delete=models.SET_NULL, null=True, blank=True)
+    related_withdrawal = models.ForeignKey(WithdrawalRequest, on_delete=models.SET_NULL, null=True, blank=True)
+    related_incentive = models.ForeignKey(TechnicianIncentiveAward, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    guided_flow_state = models.JSONField(default=dict, blank=True)
+    escalation_reason = models.TextField(blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    escalated_at = models.DateTimeField(null=True, blank=True)
+    closed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'TechnicianSupportTicket'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"TS-Ticket #{self.id} - {self.technician.username} ({self.status})"
+
+class TechnicianSupportMessage(models.Model):
+    SENDER_TYPES = (
+        ('TECHNICIAN', 'Technician'),
+        ('ADMIN', 'Admin'),
+        ('SYSTEM', 'System'),
+    )
+    ticket = models.ForeignKey(TechnicianSupportTicket, on_delete=models.CASCADE, related_name='messages')
+    sender_type = models.CharField(max_length=20, choices=SENDER_TYPES)
+    sender_technician = models.ForeignKey(Technician_signup, on_delete=models.SET_NULL, null=True, blank=True)
+    sender_admin = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'TechnicianSupportMessage'
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Message by {self.sender_type} on Ticket #{self.ticket.id}"

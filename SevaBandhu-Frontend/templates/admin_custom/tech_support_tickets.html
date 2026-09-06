@@ -1,0 +1,55 @@
+{% extends "admin_custom/base_admin.html" %}
+
+{% block title %}Technician Support Tickets | Admin{% endblock %}
+
+{% block header %}Technician Support Tickets{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <i class="fas fa-headset me-1"></i>
+        Technician Support Tickets
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered table-striped" id="datatablesSimple">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Technician</th>
+                    <th>Category</th>
+                    <th>Issue</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                <tr>
+                    <td>#TS-{{ ticket.id }}</td>
+                    <td>{{ ticket.technician.username }}</td>
+                    <td>{{ ticket.category }}</td>
+                    <td>{{ ticket.issue }}</td>
+                    <td>
+                        {% if ticket.status == 'OPEN' %}
+                        <span class="badge bg-danger">Open</span>
+                        {% elif ticket.status == 'IN_PROGRESS' %}
+                        <span class="badge bg-warning text-dark">In Progress</span>
+                        {% else %}
+                        <span class="badge bg-success">{{ ticket.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ ticket.created_at|date:"M d, Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'admin_tech_support_chat' ticket.id %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-reply"></i> Open Chat
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

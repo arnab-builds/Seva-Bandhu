@@ -790,3 +790,20 @@ def admin_withdrawal_action(request, id):
             messages.error(request, str(e))
             
     return redirect('admin_withdrawals_list')
+
+from .models import TechnicianSupportTicket
+from django.contrib.auth.decorators import login_required
+
+@login_required(login_url='admin_login')
+def admin_tech_support_tickets(request):
+    if not request.user.is_superuser:
+        return redirect('admin_login')
+    tickets = TechnicianSupportTicket.objects.all().order_by('-created_at')
+    return render(request, 'admin_custom/tech_support_tickets.html', {'tickets': tickets})
+
+@login_required(login_url='admin_login')
+def admin_tech_support_chat(request, ticket_id):
+    if not request.user.is_superuser:
+        return redirect('admin_login')
+    ticket = get_object_or_404(TechnicianSupportTicket, id=ticket_id)
+    return render(request, 'admin_custom/tech_support_chat.html', {'ticket': ticket})

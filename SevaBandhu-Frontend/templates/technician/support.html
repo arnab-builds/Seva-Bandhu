@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Support | Seva Bandhu{% endblock %}
+
+{% block content %}
+<style>
+.support-container {
+    max-width: 800px;
+    margin: 30px auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    height: 80vh;
+}
+.support-header {
+    background: #2563eb;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 12px 12px 0 0;
+    font-weight: 600;
+    font-size: 18px;
+    display: flex;
+    justify-content: space-between;
+}
+.support-chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: #f8fafc;
+}
+.message-row {
+    display: flex;
+    margin-bottom: 15px;
+}
+.message-row.user {
+    justify-content: flex-end;
+}
+.message-row.assistant {
+    justify-content: flex-start;
+}
+.message-bubble {
+    max-width: 70%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 15px;
+    line-height: 1.4;
+}
+.message-bubble.assistant {
+    background: #e2e8f0;
+    color: #1e293b;
+    border-bottom-left-radius: 4px;
+    white-space: pre-wrap;
+}
+.message-bubble.user {
+    background: #2563eb;
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+.options-container {
+    padding: 15px 20px;
+    background: #fff;
+    border-top: 1px solid #e2e8f0;
+    border-radius: 0 0 12px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.option-btn {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all 0.2s;
+}
+.option-btn:hover {
+    background: #e2e8f0;
+}
+.chat-input-container {
+    display: none;
+    padding: 15px 20px;
+    background: #fff;
+    border-top: 1px solid #e2e8f0;
+    border-radius: 0 0 12px 12px;
+}
+.chat-input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    outline: none;
+}
+.chat-send-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 0 20px;
+    margin-left: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+</style>
+
+<div class="support-container">
+    <div class="support-header">
+        <div>← Support</div>
+        <div id="support-status">Assistant Online</div>
+    </div>
+    <div class="support-chat" id="chat-box">
+        <!-- Messages will go here -->
+    </div>
+    
+    <!-- Guided options -->
+    <div class="options-container" id="options-box">
+        <!-- Options will go here -->
+    </div>
+    
+    <!-- Live chat input (hidden initially) -->
+    <div class="chat-input-container" id="chat-input-box" style="display: flex;">
+        <input type="text" id="chat-input" class="chat-input" placeholder="Type a message..." disabled>
+        <button id="chat-send-btn" class="chat-send-btn" disabled>Send</button>
+    </div>
+</div>
+
+<script>
+let currentState = {};
+let activeTicketId = null;
+let chatSocket = null;
+const csrfToken = '{{ csrf_token }}';
+
+function addMessage(text, sender) {
+    const chatBox = document.getElementById('chat-box');
+    const row = document.createElement('div');
+    row.className = `message-row ${sender}`;
+    const bubble = document.createElement('div');
+    bubble.className = `message-bubble ${sender}`;
+    bubble.textContent = text;
+    row.appendChild(bubble);
+    chatBox.appendChild(row);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function renderOptions(options) {
+    const optionsBox = document.getElementById('options-box');
+    optionsBox.innerHTML = '';
+    
+    if (!options || options.length === 0) {
+        optionsBox.style.display = 'none';
+        return;
+    }
+    
+    optionsBox.style.display = 'flex';
+    options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = opt.label;
+        btn.onclick = () => selectOption(opt);
+        optionsBox.appendChild(btn);
+    });
+}
+
+function selectOption(opt) {
+    addMessage(opt.label, 'user');
+    
+    fetch('/technician/support/api/action/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+            action: 'SELECT',
+            selection_id: opt.id,
+            state: currentState
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.escalated) {
+            addMessage(data.message, 'assistant');
+            document.getElementById('options-box').style.display = 'none';
+            startLiveChat(data.ticket_id);
+        } else {
+            if (data.message) {
+                addMessage(data.message, 'assistant');
+            }
+            currentState = data.state;
+            renderOptions(data.options);
+            
+            if (data.ended) {
+                document.getElementById('options-box').style.display = 'none';
+            }
+        }
+    });
+}
+
+function initGuidedSupport() {
+    fetch('/technician/support/api/action/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+            action: 'INIT'
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        addMessage(data.message, 'assistant');
+        currentState = data.state;
+        renderOptions(data.options);
+        document.getElementById('chat-input-box').style.display = 'none';
+    });
+}
+
+function startLiveChat(ticketId) {
+    activeTicketId = ticketId;
+    document.getElementById('support-status').textContent = 'Live Chat with Admin';
+    
+    // Switch UI
+    document.getElementById('options-box').style.display = 'none';
+    const inputBox = document.getElementById('chat-input-box');
+    inputBox.style.display = 'flex';
+    document.getElementById('chat-input').disabled = false;
+    document.getElementById('chat-send-btn').disabled = false;
+    
+    // Connect WebSocket
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    chatSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/support/technician/${ticketId}/`);
+    
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        if (data.type === 'support_message_broadcast') {
+            const sender = data.sender_type === 'TECHNICIAN' ? 'user' : 'assistant';
+            if (data.sender_type === 'SYSTEM') {
+                addMessage(data.message, 'assistant');
+            } else {
+                addMessage(data.message, sender);
+            }
+            if (data.is_resolved) {
+                document.getElementById('chat-input').disabled = true;
+                document.getElementById('chat-send-btn').disabled = true;
+                const restartBtn = document.createElement('button');
+                restartBtn.textContent = "Start New Chat";
+                restartBtn.className = "btn-action-primary";
+                restartBtn.style.marginTop = "15px";
+                restartBtn.style.padding = "10px 15px";
+                restartBtn.style.border = "none";
+                restartBtn.style.borderRadius = "8px";
+                restartBtn.style.background = "#2563eb";
+                restartBtn.style.color = "white";
+                restartBtn.onclick = () => window.location.reload();
+                document.getElementById('chat-box').appendChild(restartBtn);
+                document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
+            }
+        } else if (data.type === 'error') {
+            addMessage(data.message, 'assistant');
+            document.getElementById('chat-input').disabled = true;
+            document.getElementById('chat-send-btn').disabled = true;
+        }
+    };
+    
+    document.getElementById('chat-send-btn').onclick = function() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if (text && chatSocket.readyState === WebSocket.OPEN) {
+            chatSocket.send(JSON.stringify({
+                'type': 'chat_message',
+                'message': text
+            }));
+            input.value = '';
+        }
+    };
+    
+    document.getElementById('chat-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('chat-send-btn').click();
+        }
+    });
+}
+
+// Start
+document.addEventListener('DOMContentLoaded', initGuidedSupport);
+
+</script>
+{% endblock %}
+

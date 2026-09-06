@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from . import admin_views
+from . import support_views
 
 # 🔥 ADD THESE
 from django.conf import settings
@@ -27,6 +28,10 @@ urlpatterns = [
     path('technician/navigation/<int:id>/',views.technician_navigation,name='technician_navigation'),
     path('technician/wallet/', views.technician_wallet_view, name='technician_wallet'),
     path('technician/request-withdrawal/', views.technician_request_withdrawal, name='technician_request_withdrawal'),
+    path('technician/support/', support_views.technician_support_chat, name='technician_support_chat'),
+    path('technician/support/api/action/', support_views.technician_support_api_action, name='technician_support_api_action'),
+
+
 
     # Customer
     path('customer/dashboard/', views.customer_dashboard, name='customer_dashboard'),
@@ -94,6 +99,9 @@ urlpatterns = [
     
     path('super-admin/support-tickets/', admin_views.admin_support_tickets_list, name='admin_support_tickets_list'),
     path('super-admin/support-tickets/<int:id>/action/', admin_views.admin_support_ticket_action, name='admin_support_ticket_action'),
+    path('super-admin/technician-support/', admin_views.admin_tech_support_tickets, name='admin_tech_support_tickets'),
+    path('super-admin/technician-support/<int:ticket_id>/', admin_views.admin_tech_support_chat, name='admin_tech_support_chat'),
+
     
     # Wallet & Incentives Admin
     path('super-admin/incentives/', admin_views.admin_incentives_list, name='admin_incentives_list'),
