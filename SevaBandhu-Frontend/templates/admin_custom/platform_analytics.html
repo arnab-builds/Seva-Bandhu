@@ -179,10 +179,8 @@
     </table>
 
     <h2 class="section-title" style="margin-top: 56px;">SMART OFFERS PERFORMANCE</h2>
-
     <div class="analytics-grid">
-        <div class="metric-card card-blue">
-            <svg class="metric-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        <div class="metric-card card-amber">
             <div class="metric-title">Active Offers</div>
             <div class="metric-value">{{ active_offers }} <span style="font-size:16px; color:#60a5fa;">/ {{ total_offers }}</span></div>
         </div>
@@ -191,8 +189,8 @@
             <div class="metric-title">Offers Assigned</div>
             <div class="metric-value">{{ offers_assigned }}</div>
         </div>
-        <div class="metric-card card-amber">
-            <svg class="metric-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <div class="metric-card card-blue">
+            <svg class="metric-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
             <div class="metric-title">Offers Viewed</div>
             <div class="metric-value">{{ offers_viewed }}</div>
         </div>
@@ -208,6 +206,7 @@
             <svg class="metric-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
             <div class="metric-title">Global Redemption Rate</div>
             <div class="metric-value">{{ overall_redemption_rate }}%</div>
+            <div style="font-size: 11px; margin-top:4px;">{{ offers_redeemed }} redeemed / {{ offers_viewed }} viewed</div>
         </div>
         <div class="metric-card card-cyan">
             <svg class="metric-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -218,6 +217,7 @@
             <svg class="metric-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
             <div class="metric-title">Offer-Driven Revenue</div>
             <div class="metric-value" style="color: #15803d;">₹{{ offer_revenue }}</div>
+            <div style="font-size: 11px; margin-top:4px;">From {{ offer_bookings }} bookings</div>
         </div>
     </div>
 
@@ -225,34 +225,41 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th>Offer Title</th>
-                <th>Promo Code</th>
+                <th>Offer Details</th>
                 <th>Assigned</th>
                 <th>Viewed</th>
                 <th>Redeemed</th>
                 <th>Redemption Rate</th>
-                <th>Bookings</th>
-                <th>Revenue Generated</th>
+                <th>Bookings & Revenue</th>
             </tr>
         </thead>
         <tbody>
             {% for item in individual_offers %}
             <tr>
-                <td><strong>{{ item.title }}</strong></td>
-                <td><code style="background:#f1f5f9; color:#475569; font-weight:700; padding:6px 10px; border-radius:8px; border: 1px solid #e2e8f0; font-size:12px;">{{ item.code }}</code></td>
+                <td>
+                    <div style="font-weight:700; color:#0f172a; margin-bottom:4px;">{{ item.title }}</div>
+                    <code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:11px; color:#475569;">{{ item.code }}</code>
+                </td>
                 <td>{{ item.assigned }}</td>
                 <td>{{ item.viewed }}</td>
                 <td>{{ item.redeemed }}</td>
-                <td><span class="badge {% if item.redemption_rate > 20 %}badge-success{% else %}badge-info{% endif %}">{{ item.redemption_rate }}%</span></td>
-                <td>{{ item.bookings }}</td>
-                <td style="color:#15803d; font-weight:800;">₹{{ item.revenue }}</td>
+                <td>
+                    <span class="badge {% if item.redemption_rate > 10 %}badge-success{% else %}badge-info{% endif %}">
+                        {{ item.redemption_rate }}%
+                    </span>
+                </td>
+                <td>
+                    <div style="font-size:12px; font-weight:600;">{{ item.bookings }} bookings</div>
+                    <div style="font-size:11px; color:#10b981;">₹{{ item.revenue }} generated</div>
+                </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="8" style="text-align: center; color: #94a3b8; padding: 32px;">No offers created yet.</td>
+                <td colspan="6" style="text-align: center; color: #94a3b8; padding: 32px;">No offers created yet.</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
 </div>
 {% endblock %}

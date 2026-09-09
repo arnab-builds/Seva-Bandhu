@@ -541,6 +541,7 @@ def admin_platform_analytics(request):
     from core.services.rating_engine import ServiceRatingEngine
     service_ratings = ServiceRatingEngine.get_all_service_ratings()
 
+
     context = {
         'customers_analyzed': customers_analyzed,
         'interactions': interactions,
@@ -567,6 +568,16 @@ def admin_platform_analytics(request):
         'service_ratings': service_ratings,
     }
     return render(request, 'admin_custom/platform_analytics.html', context)
+
+
+@superuser_required
+def admin_comprehensive_analytics(request):
+    from core.analytics_helper import get_comprehensive_analytics
+    
+    date_filter = request.GET.get('date_filter', 'all_time')
+    comprehensive_data = get_comprehensive_analytics(date_filter)
+
+    return render(request, 'admin_custom/comprehensive_analytics.html', comprehensive_data)
 
 
 

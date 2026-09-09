@@ -1,0 +1,192 @@
+{% extends "admin_custom/base_admin.html" %}
+
+{% block content %}
+<style>
+    .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .date-filter-form { display: flex; gap: 12px; align-items: center; }
+    .date-filter-form select { padding: 8px 16px; border-radius: 8px; border: 1px solid #cbd5e1; }
+    .date-filter-form button { padding: 8px 16px; border-radius: 8px; background: #2563eb; color: #fff; border: none; cursor: pointer; font-weight: 600; }
+    
+    .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-bottom: 40px; }
+    
+    .metric-card { 
+        padding: 24px; 
+        border-radius: 16px; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
+        border: 1px solid rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+    }
+    
+    .metric-title { color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 700; z-index: 1;}
+    .metric-value { color: #0f172a; font-size: 32px; font-weight: 800; margin: 0; z-index: 1; letter-spacing: -0.03em;}
+    
+    .card-blue { background: linear-gradient(145deg, #eff6ff 0%, #dbeafe 100%); border-left: 5px solid #3b82f6; }
+    .card-purple { background: linear-gradient(145deg, #f5f3ff 0%, #ede9fe 100%); border-left: 5px solid #8b5cf6; }
+    .card-pink { background: linear-gradient(145deg, #fdf2f8 0%, #fce7f3 100%); border-left: 5px solid #ec4899; }
+    .card-emerald { background: linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%); border-left: 5px solid #10b981; }
+    .card-amber { background: linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%); border-left: 5px solid #f59e0b; }
+    .card-cyan { background: linear-gradient(145deg, #ecfeff 0%, #cffafe 100%); border-left: 5px solid #06b6d4; }
+    .card-slate { background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%); border-left: 5px solid #64748b; }
+    
+    .section-title { margin-top: 40px; margin-bottom: 24px; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; font-size: 20px; font-weight: 800; }
+    
+    .data-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0;}
+    .data-table th, .data-table td { padding: 16px 20px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    .data-table th { background: #f8fafc; color: #475569; font-weight: 700; text-transform: uppercase; font-size: 12px;}
+    
+    .financial-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px; }
+    .fin-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; }
+    .fin-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; font-size: 15px;}
+    .fin-label { font-weight: 600; color: #475569; }
+    .fin-val { font-weight: 800; color: #0f172a; }
+    .fin-total { background: #f8fafc; padding: 16px; border-radius: 8px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center;}
+    .fin-total .fin-label { color: #1e293b; font-size: 18px; }
+    .fin-total .fin-val { font-size: 24px; color: #2563eb; }
+</style>
+
+<div class="content-main">
+    <div class="dashboard-header">
+        <h1>Comprehensive Financial & Business Analytics</h1>
+        <form method="GET" class="date-filter-form">
+            <select name="date_filter" id="date_filter">
+                <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
+                <option value="yesterday" {% if date_filter == 'yesterday' %}selected{% endif %}>Yesterday</option>
+                <option value="last_7" {% if date_filter == 'last_7' %}selected{% endif %}>Last 7 Days</option>
+                <option value="last_30" {% if date_filter == 'last_30' %}selected{% endif %}>Last 30 Days</option>
+                <option value="this_month" {% if date_filter == 'this_month' %}selected{% endif %}>This Month</option>
+                <option value="this_year" {% if date_filter == 'this_year' %}selected{% endif %}>This Year</option>
+                <option value="all_time" {% if date_filter == 'all_time' %}selected{% endif %}>All Time</option>
+            </select>
+            <button type="submit">Filter Data</button>
+        </form>
+    </div>
+
+    <h2 class="section-title">TOP KPI SUMMARY</h2>
+    <div class="analytics-grid">
+        <div class="metric-card card-emerald">
+            <div class="metric-title">Sales (Payments Received)</div>
+            <div class="metric-value">₹{{ total_sales|floatformat:2 }}</div>
+        </div>
+        <div class="metric-card card-blue">
+            <div class="metric-title">Platform Income</div>
+            <div class="metric-value">₹{{ platform_income|floatformat:2 }}</div>
+        </div>
+        <div class="metric-card card-purple">
+            <div class="metric-title">Technician Earnings</div>
+            <div class="metric-value">₹{{ tech_earnings|floatformat:2 }}</div>
+        </div>
+        <div class="metric-card card-amber">
+            <div class="metric-title">Total Bookings</div>
+            <div class="metric-value">{{ total_bookings }}</div>
+        </div>
+    </div>
+
+    <div class="financial-grid">
+        <div class="fin-box">
+            <h3 style="margin-top:0; margin-bottom: 20px;">Financial Reconciliation</h3>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">This breakdown reflects the actual flow of funds through the platform.</p>
+            
+            <div class="fin-row">
+                <span class="fin-label">Customer Payments (Sales)</span>
+                <span class="fin-val text-success">+ ₹{{ total_sales|floatformat:2 }}</span>
+            </div>
+            <div class="fin-row">
+                <span class="fin-label">Technician Earnings (Allocated)</span>
+                <span class="fin-val text-danger">- ₹{{ tech_earnings|floatformat:2 }}</span>
+            </div>
+            <div class="fin-total">
+                <span class="fin-label">Net Platform Income</span>
+                <span class="fin-val">₹{{ platform_income|floatformat:2 }}</span>
+            </div>
+        </div>
+
+        <div class="fin-box">
+            <h3 style="margin-top:0; margin-bottom: 20px;">Promotions & Liabilities</h3>
+            
+            <div class="fin-row">
+                <span class="fin-label">Offers & Discounts Applied</span>
+                <span class="fin-val text-danger">₹{{ discounts_sum|floatformat:2 }}</span>
+            </div>
+            <div class="fin-row">
+                <span class="fin-label">Referral Rewards Paid</span>
+                <span class="fin-val text-danger">₹{{ referral_rewards|floatformat:2 }}</span>
+            </div>
+            <div class="fin-row">
+                <span class="fin-label">Technician Incentives Awarded</span>
+                <span class="fin-val text-danger">₹{{ incentive_payouts|floatformat:2 }}</span>
+            </div>
+            <div class="fin-row">
+                <span class="fin-label">Refunds / Reversals</span>
+                <span class="fin-val text-danger">₹{{ total_reversals|floatformat:2 }}</span>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="section-title">WALLET & WITHDRAWALS</h2>
+    <div class="analytics-grid">
+        <div class="metric-card card-slate">
+            <div class="metric-title">Total Requested</div>
+            <div class="metric-value">₹{{ total_withdrawals_requested|floatformat:2 }}</div>
+        </div>
+        <div class="metric-card card-emerald">
+            <div class="metric-title">Total Approved</div>
+            <div class="metric-value">₹{{ total_withdrawals_approved|floatformat:2 }}</div>
+        </div>
+        <div class="metric-card card-amber">
+            <div class="metric-title">Pending Withdrawals</div>
+            <div class="metric-value">₹{{ pending_withdrawals|floatformat:2 }}</div>
+        </div>
+        <div class="metric-card card-pink">
+            <div class="metric-title">Total Rejected</div>
+            <div class="metric-value">₹{{ total_withdrawals_rejected|floatformat:2 }}</div>
+        </div>
+    </div>
+
+    <h2 class="section-title">GROWTH & BOOKINGS</h2>
+    <div class="analytics-grid">
+        <div class="metric-card card-cyan">
+            <div class="metric-title">Completed Bookings</div>
+            <div class="metric-value">{{ completed_bookings }}</div>
+        </div>
+        <div class="metric-card card-pink">
+            <div class="metric-title">Cancelled Bookings</div>
+            <div class="metric-value">{{ cancelled_bookings }}</div>
+        </div>
+        <div class="metric-card card-blue">
+            <div class="metric-title">New Customers</div>
+            <div class="metric-value">{{ new_customers }}</div>
+        </div>
+        <div class="metric-card card-purple">
+            <div class="metric-title">New Technicians</div>
+            <div class="metric-value">{{ new_technicians }}</div>
+        </div>
+    </div>
+
+    <h2 class="section-title">TOP PERFORMING SERVICES (By Bookings)</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Service Name</th>
+                <th>Total Bookings</th>
+                <th>Total Sales Generated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for service in top_services %}
+            <tr>
+                <td style="font-weight:600;">{{ service.service_detail__service_category }}</td>
+                <td>{{ service.count }}</td>
+                <td style="font-weight:700; color:#16a34a;">₹{{ service.sales|default:"0.00"|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" style="text-align:center; padding: 30px; color:#64748b;">No bookings found for the selected period.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
