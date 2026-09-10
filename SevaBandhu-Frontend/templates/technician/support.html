@@ -25,6 +25,14 @@
     display: flex;
     justify-content: space-between;
 }
+.support-back-btn {
+    background: none;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    padding: 0;
+    cursor: pointer;
+}
 .support-chat {
     flex: 1;
     overflow-y: auto;
@@ -108,7 +116,7 @@
 
 <div class="support-container">
     <div class="support-header">
-        <div>← Support</div>
+        <button type="button" class="support-back-btn" id="support-back-btn">← Support</button>
         <div id="support-status">Assistant Online</div>
     </div>
     <div class="support-chat" id="chat-box">
@@ -132,6 +140,10 @@ let currentState = {};
 let activeTicketId = null;
 let chatSocket = null;
 const csrfToken = '{{ csrf_token }}';
+
+document.getElementById('support-back-btn').addEventListener('click', () => {
+    window.location.href = '{% url "technician_dashboard" %}';
+});
 
 function addMessage(text, sender) {
     const chatBox = document.getElementById('chat-box');

@@ -1,0 +1,345 @@
+<style>
+    /* Floating button */
+    #adminAssistantBtn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: #2196F3;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        cursor: pointer;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s;
+    }
+    #adminAssistantBtn:hover {
+        transform: scale(1.1);
+    }
+    #adminAssistantBtn svg,
+    #adminAssistantHeader svg,
+    #adminAssistantSendBtn svg {
+        pointer-events: none;
+    }
+
+    #adminAssistantBtn svg { width: 27px; height: 27px; }
+    #adminAssistantHeader svg { width: 17px; height: 17px; vertical-align: middle; }
+    #adminAssistantSendBtn svg { width: 18px; height: 18px; }
+
+    /* Chat Panel */
+    #adminAssistantPanel {
+        position: fixed;
+        bottom: 90px;
+        right: 20px;
+        width: 350px;
+        height: 500px;
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        z-index: 9999;
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid #e0e0e0;
+    }
+
+    #adminAssistantPanel.is-expanded {
+        width: min(720px, calc(100vw - 40px));
+        height: min(760px, calc(100vh - 120px));
+    }
+
+    #adminAssistantHeader {
+        background-color: #2196F3;
+        color: white;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: bold;
+    }
+
+    #adminAssistantHeader button {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+        width: 32px;
+        height: 32px;
+        border-radius: 7px;
+    }
+
+    #adminAssistantHeader button:hover {
+        background: rgba(255, 255, 255, 0.16);
+    }
+
+    .admin-assistant-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+    }
+
+    @media (max-width: 560px) {
+        #adminAssistantPanel,
+        #adminAssistantPanel.is-expanded {
+            right: 12px;
+            bottom: 84px;
+            width: calc(100vw - 24px);
+            height: calc(100vh - 108px);
+        }
+    }
+
+    #adminAssistantBody {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background-color: #f9f9f9;
+    }
+
+    .chat-message {
+        padding: 10px 15px;
+        border-radius: 18px;
+        max-width: 85%;
+        word-wrap: break-word;
+        font-size: 14px;
+    }
+
+    .chat-message.admin {
+        background-color: #2196F3;
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 4px;
+    }
+
+    .chat-message.assistant {
+        background-color: #e0e0e0;
+        color: #333;
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+    }
+
+    .chat-source {
+        font-size: 11px;
+        color: #666;
+        margin-top: 5px;
+        display: block;
+    }
+
+    #adminAssistantInputContainer {
+        display: flex;
+        padding: 10px;
+        border-top: 1px solid #e0e0e0;
+        background-color: white;
+    }
+
+    #adminAssistantInput {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 20px;
+        outline: none;
+        font-size: 14px;
+    }
+
+    #adminAssistantSendBtn {
+        background: #2196F3;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        margin-left: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #adminAssistantSendBtn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+
+    .quick-questions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 10px;
+    }
+
+    .quick-question-btn {
+        background: #e3f2fd;
+        border: 1px solid #bbdefb;
+        color: #1976d2;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .quick-question-btn:hover {
+        background: #bbdefb;
+    }
+
+    .typing-indicator {
+        font-size: 12px;
+        color: #888;
+        align-self: flex-start;
+        display: none;
+    }
+</style>
+
+<button id="adminAssistantBtn" aria-label="Open Admin Data Assistant" title="Admin Data Assistant">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="4" y="7" width="16" height="13" rx="3"></rect><path d="M12 3v4"></path><circle cx="9" cy="13" r="1"></circle><circle cx="15" cy="13" r="1"></circle><path d="M9 17h6"></path>
+    </svg>
+</button>
+
+<div id="adminAssistantPanel">
+    <div id="adminAssistantHeader">
+        <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="4" y="7" width="16" height="13" rx="3"></rect><path d="M12 3v4"></path><circle cx="9" cy="13" r="1"></circle><circle cx="15" cy="13" r="1"></circle><path d="M9 17h6"></path>
+            </svg>
+            Seva Bandhu Data Assistant
+        </span>
+        <div class="admin-assistant-header-actions">
+            <button id="adminAssistantExpandBtn" type="button" aria-label="Expand assistant" title="Expand assistant">
+                <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5"></path>
+                </svg>
+            </button>
+            <button id="adminAssistantCloseBtn" type="button" aria-label="Close assistant" title="Close assistant">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <path d="M6 6l12 12M18 6L6 18"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+    <div id="adminAssistantBody">
+        <div class="chat-message assistant">
+            Hello Admin! I can answer questions about Seva Bandhu's internal data using the Admin Analytics engine.
+            <div class="quick-questions">
+                <button class="quick-question-btn">Today's sales</button>
+                <button class="quick-question-btn">Top technician by jobs</button>
+                <button class="quick-question-btn">Most booked service</button>
+                <button class="quick-question-btn">New customers last month</button>
+                <button class="quick-question-btn">Platform overview</button>
+                <button class="quick-question-btn">List all technicians</button>
+                <button class="quick-question-btn">Show today's income</button>
+            </div>
+        </div>
+        <div class="typing-indicator" id="assistantTypingIndicator">Typing...</div>
+    </div>
+    <div id="adminAssistantInputContainer">
+        <input type="text" id="adminAssistantInput" placeholder="Ask about bookings, sales..." />
+        <button id="adminAssistantSendBtn" aria-label="Send message" title="Send message">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M22 2 11 13"></path><path d="m22 2-7 20-4-9-9-4Z"></path>
+            </svg>
+        </button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const btn = document.getElementById("adminAssistantBtn");
+        const panel = document.getElementById("adminAssistantPanel");
+        const closeBtn = document.getElementById("adminAssistantCloseBtn");
+        const expandBtn = document.getElementById("adminAssistantExpandBtn");
+        const input = document.getElementById("adminAssistantInput");
+        const sendBtn = document.getElementById("adminAssistantSendBtn");
+        const body = document.getElementById("adminAssistantBody");
+        const typingIndicator = document.getElementById("assistantTypingIndicator");
+
+        btn.addEventListener("click", () => {
+            panel.style.display = panel.style.display === "flex" ? "none" : "flex";
+            if(panel.style.display === "flex") input.focus();
+        });
+
+        closeBtn.addEventListener("click", () => {
+            panel.style.display = "none";
+        });
+
+        expandBtn.addEventListener("click", () => {
+            const isExpanded = panel.classList.toggle("is-expanded");
+            const icon = expandBtn.querySelector("svg");
+            icon.innerHTML = isExpanded
+                ? '<path d="M9 3H3v6M15 3h6v6M9 21H3v-6M21 15v6h-6"></path>'
+                : '<path d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5"></path>';
+            expandBtn.setAttribute("aria-label", isExpanded ? "Shrink assistant" : "Expand assistant");
+            expandBtn.setAttribute("title", isExpanded ? "Shrink assistant" : "Expand assistant");
+        });
+
+        function addMessage(text, sender) {
+            const msgDiv = document.createElement("div");
+            msgDiv.className = "chat-message " + sender;
+            msgDiv.innerText = text;
+            if(sender === 'assistant') {
+                const source = document.createElement("span");
+                source.className = "chat-source";
+                source.innerText = "Source: Admin Analytics";
+                msgDiv.appendChild(source);
+            }
+            body.insertBefore(msgDiv, typingIndicator);
+            body.scrollTop = body.scrollHeight;
+        }
+
+        async function sendMessage(text) {
+            if (!text.trim()) return;
+            
+            addMessage(text, "admin");
+            input.value = "";
+            sendBtn.disabled = true;
+            input.disabled = true;
+            typingIndicator.style.display = "block";
+            body.scrollTop = body.scrollHeight;
+
+            try {
+                const response = await fetch("/super-admin/assistant/query/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ message: text })
+                });
+                
+                const data = await response.json();
+                addMessage(data.answer, "assistant");
+            } catch (error) {
+                addMessage("Sorry, I couldn't retrieve that information right now.", "assistant");
+            } finally {
+                sendBtn.disabled = false;
+                input.disabled = false;
+                typingIndicator.style.display = "none";
+                input.focus();
+                body.scrollTop = body.scrollHeight;
+            }
+        }
+
+        sendBtn.addEventListener("click", () => sendMessage(input.value));
+        
+        input.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                sendMessage(input.value);
+            }
+        });
+
+        document.querySelectorAll(".quick-question-btn").forEach(btn => {
+            btn.addEventListener("click", function() {
+                sendMessage(this.innerText);
+            });
+        });
+    });
+</script>
+

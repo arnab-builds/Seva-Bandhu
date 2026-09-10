@@ -113,6 +113,7 @@ urlpatterns = [
     
     path('super-admin/withdrawals/', admin_views.admin_withdrawals_list, name='admin_withdrawals_list'),
     path('super-admin/withdrawals/<int:id>/action/', admin_views.admin_withdrawal_action, name='admin_withdrawal_action'),
+    path('super-admin/assistant/query/', admin_views.admin_assistant_query, name='admin_assistant_query'),
 ]
 
 # 🔥 VERY IMPORTANT — SERVE IMAGES

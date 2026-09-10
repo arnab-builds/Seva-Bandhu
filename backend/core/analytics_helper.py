@@ -23,6 +23,11 @@ def get_date_range(filter_type):
         return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0), now
     elif filter_type == 'this_year':
         return now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0), now
+    elif filter_type == 'last_month':
+        first_day_of_this_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        end_of_last_month = first_day_of_this_month - datetime.timedelta(seconds=1)
+        start_of_last_month = end_of_last_month.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        return start_of_last_month, end_of_last_month
     return None, None
 
 def get_comprehensive_analytics(date_filter='all_time'):

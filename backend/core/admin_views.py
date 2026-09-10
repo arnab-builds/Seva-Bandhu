@@ -818,3 +818,26 @@ def admin_tech_support_chat(request, ticket_id):
         return redirect('admin_login')
     ticket = get_object_or_404(TechnicianSupportTicket, id=ticket_id)
     return render(request, 'admin_custom/tech_support_chat.html', {'ticket': ticket})
+
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from core.services.admin_assistant import process_query
+
+@superuser_required
+@csrf_exempt
+def admin_assistant_query(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            message = data.get('message', '')
+            if not message:
+                return JsonResponse({"success": False, "answer": "No message provided."})
+            
+            context = request.session.get('admin_assistant_context', {})
+            result, new_context = process_query(message, context)
+            request.session['admin_assistant_context'] = new_context
+            return JsonResponse(result)
+        except Exception as e:
+            return JsonResponse({"success": False, "answer": "Server error processing request."})
+    return JsonResponse({"success": False, "answer": "Invalid request method."})

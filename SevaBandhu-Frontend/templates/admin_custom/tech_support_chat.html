@@ -6,156 +6,72 @@
 
 {% block content %}
 <style>
-.chat-container {
-    height: 500px;
-    height: 600px;
-    display: flex;
-    flex-direction: column;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-}
-.chat-history {
-    flex: 1;
-    overflow-y: auto;
-    padding: 24px;
-    background: #f8fafc;
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 8px 8px 0 0;
-    border-radius: 12px 12px 0 0;
-}
-.message {
-    margin-bottom: 15px;
-    margin-bottom: 12px;
-    display: flex;
-    flex-direction: column;
-}
-.message.technician {
-    justify-content: flex-start;
-    align-items: flex-start;
-}
-.message.admin, .message.system {
-    justify-content: flex-end;
-.message.admin {
-    align-items: flex-end;
-}
-.message.system {
-    align-items: center;
-    margin: 20px 0;
-}
-.message-sender {
-    font-size: 11px;
-    font-weight: 600;
-    color: #64748b;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-.message-bubble {
-    max-width: 75%;
-    padding: 10px 15px;
-    border-radius: 12px;
-    max-width: 65%;
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-size: 14px;
-    line-height: 1.5;
-    word-wrap: break-word;
-    white-space: pre-wrap;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-.message.technician .message-bubble {
-    background: #e2e8f0;
-    background: #ffffff;
-    color: #1e293b;
-    border: 1px solid #e2e8f0;
-    border-top-left-radius: 2px;
-}
-.message.admin .message-bubble {
-    background: #0d6efd;
-    color: white;
-    background: #2563eb;
-    color: #ffffff;
-    border-top-right-radius: 2px;
-}
-.message.system .message-bubble {
-    background: #fff3cd;
-    color: #664d03;
-    border: 1px solid #ffecb5;
-    font-size: 13px;
-    font-family: monospace;
-    max-width: 85%;
-    background: #f1f5f9;
-    color: #475569;
-    border: 1px dashed #cbd5e1;
-    font-size: 12.5px;
-    text-align: left;
-    border-radius: 6px;
-    box-shadow: none;
-}
-.chat-input-area {
-    display: flex;
-    padding: 10px;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-top: none;
-    border-radius: 0 0 8px 8px;
-    padding: 16px;
-    background: #ffffff;
-    border-top: 1px solid #e2e8f0;
-    border-radius: 0 0 12px 12px;
-    align-items: center;
-}
+.support-page { max-width: 1180px; margin: 0 auto; }
+.support-back { display: inline-flex; gap: 8px; align-items: center; margin-bottom: 18px; color: #64748b; font-size: 13px; font-weight: 600; text-decoration: none; }
+.support-back:hover { color: #2563eb; }
+.support-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 20px; align-items: start; }
+.ticket-card, .chat-container { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; box-shadow: 0 8px 24px rgba(15, 23, 42, .06); }
+.ticket-card { padding: 22px; }
+.ticket-card h3 { margin: 0 0 18px; color: #0f172a; font-size: 16px; }
+.ticket-field { padding: 13px 0; border-top: 1px solid #eef2f7; }
+.ticket-field:first-of-type { padding-top: 0; border-top: 0; }
+.ticket-label { display: block; margin-bottom: 4px; color: #64748b; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.ticket-value { color: #1e293b; font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; }
+.ticket-status { display: inline-flex; padding: 5px 9px; border-radius: 999px; background: #dcfce7; color: #15803d; font-size: 12px; font-weight: 700; }
+.chat-container { height: min(690px, calc(100vh - 150px)); min-height: 520px; display: flex; flex-direction: column; overflow: hidden; }
+.chat-heading { display: flex; justify-content: space-between; gap: 16px; padding: 18px 22px; border-bottom: 1px solid #e2e8f0; }
+.chat-heading strong { color: #0f172a; font-size: 15px; }
+.chat-heading span { color: #64748b; font-size: 12px; }
+.chat-history { flex: 1; min-height: 0; overflow-y: auto; padding: 24px; background: #f8fafc; }
+.message { display: flex; flex-direction: column; margin-bottom: 18px; }
+.message.technician { align-items: flex-start; }
+.message.admin { align-items: flex-end; }
+.message.system { align-items: center; margin: 24px 0; }
+.message-sender { margin-bottom: 5px; color: #64748b; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.message-bubble { max-width: min(72%, 560px); padding: 11px 14px; border-radius: 10px; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-wrap; }
+.message.technician .message-bubble { background: #fff; border: 1px solid #e2e8f0; border-top-left-radius: 3px; color: #1e293b; }
+.message.admin .message-bubble { background: #2563eb; border-top-right-radius: 3px; color: #fff; }
+.message.system .message-bubble { max-width: 90%; background: #eef2f7; border: 1px dashed #cbd5e1; color: #64748b; font-size: 12px; text-align: center; }
+.chat-input-area { display: flex; align-items: center; gap: 10px; padding: 16px; border-top: 1px solid #e2e8f0; background: #fff; }
+.chat-input-area input { min-width: 0; border-radius: 9px !important; padding: 11px 14px !important; }
+.chat-input-area button { white-space: nowrap; border-radius: 9px !important; font-weight: 700; }
+.resolved-message { width: 100%; padding: 11px 14px; border: 1px solid #bbf7d0; border-radius: 9px; background: #f0fdf4; color: #15803d; font-size: 13px; font-weight: 700; }
+@media (max-width: 820px) { .support-layout { grid-template-columns: 1fr; } .chat-container { height: 620px; min-height: 0; } }
+@media (max-width: 560px) { .chat-history { padding: 16px; } .message-bubble { max-width: 88%; } .chat-input-area { flex-wrap: wrap; } .chat-input-area input { flex: 1 1 100%; } .chat-input-area button { flex: 1; } }
 </style>
 
-<div class="row">
-    <div class="col-md-4">
-        <div class="card mb-4">
-            <div class="card-header bg-dark text-white">Ticket Info</div>
-            <div class="card-body">
-                <p><strong>Technician:</strong> {{ ticket.technician.username }}</p>
-                <p><strong>Category:</strong> {{ ticket.category }}</p>
-                <p><strong>Issue:</strong> {{ ticket.issue }}</p>
-                <p><strong>Status:</strong> {{ ticket.get_status_display }}</p>
-                <p><strong>Created:</strong> {{ ticket.created_at }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-8">
-        <div class="chat-container">
+<div class="support-page">
+    <a href="{% url 'admin_tech_support_tickets' %}" class="support-back"><i class="fas fa-arrow-left"></i> Technician support</a>
+    <div class="support-layout">
+        <aside class="ticket-card">
+            <h3>Ticket details</h3>
+            <div class="ticket-field"><span class="ticket-label">Technician</span><div class="ticket-value">{{ ticket.technician.username }}</div></div>
+            <div class="ticket-field"><span class="ticket-label">Category</span><div class="ticket-value">{{ ticket.category }}</div></div>
+            <div class="ticket-field"><span class="ticket-label">Issue</span><div class="ticket-value">{{ ticket.issue }}</div></div>
+            <div class="ticket-field"><span class="ticket-label">Status</span><span class="ticket-status">{{ ticket.get_status_display }}</span></div>
+            <div class="ticket-field"><span class="ticket-label">Created</span><div class="ticket-value">{{ ticket.created_at|date:"M d, Y h:i A" }}</div></div>
+        </aside>
+        <section class="chat-container" aria-label="Support conversation">
+            <div class="chat-heading"><strong>Conversation</strong><span>Ticket #TS-{{ ticket.id }}</span></div>
             <div class="chat-history" id="chat-box">
                 {% for msg in ticket.messages.all %}
                 <div class="message {{ msg.sender_type|lower }}">
-                    {% if msg.sender_type != 'SYSTEM' %}
-                    <div class="message-sender">
-                        {{ msg.sender_type }}
-                    </div>
-                    {% endif %}
-                    <div class="message-bubble">
-                        {{ msg.message }}
-                    </div>
+                    {% if msg.sender_type != 'SYSTEM' %}<div class="message-sender">{{ msg.sender_type }}</div>{% endif %}
+                    <div class="message-bubble">{{ msg.message }}</div>
                 </div>
                 {% endfor %}
             </div>
-            <div class="chat-input-area gap-2">
+            <div class="chat-input-area">
                 {% if ticket.status == 'RESOLVED' or ticket.status == 'CLOSED' %}
-                <div class="alert alert-success w-100 mb-0" style="padding: 10px; border-radius: 8px;">
-                    This ticket has been marked as {{ ticket.status }}.
-                </div>
+                <div class="resolved-message">This ticket has been marked as {{ ticket.get_status_display }}.</div>
                 {% else %}
-                <input type="text" id="chat-input" class="form-control" style="border-radius: 20px; padding: 10px 20px;" placeholder="Type your reply to the technician...">
-                <button class="btn btn-primary" id="chat-send-btn" style="border-radius: 20px; padding: 10px 24px; font-weight: 600;">
-                    <i class="fas fa-paper-plane me-1"></i> Send
-                </button>
-                <button class="btn btn-success" id="chat-resolve-btn" style="border-radius: 20px; padding: 10px 20px; white-space: nowrap; font-weight: 600;">
-                    <i class="fas fa-check-circle me-1"></i> Resolve
-                </button>
+                <input type="text" id="chat-input" class="form-control" placeholder="Type your reply to the technician...">
+                <button class="btn btn-primary" id="chat-send-btn"><i class="fas fa-paper-plane me-1"></i> Send</button>
+                <button class="btn btn-success" id="chat-resolve-btn"><i class="fas fa-check-circle me-1"></i> Resolve</button>
                 {% endif %}
             </div>
         </div>
-    </div>
+    </section>
 </div>
 
 <script>
