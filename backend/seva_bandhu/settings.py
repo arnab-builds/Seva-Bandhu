@@ -136,19 +136,36 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
 
+# --- EMAIL CONFIGURATION ---
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "").strip()
+RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "").strip()
+
+if RESEND_FROM_EMAIL:
+    DEFAULT_FROM_EMAIL = RESEND_FROM_EMAIL
+else:
+    DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "webmaster@localhost")
+
+# Email backend selection:
+# 1. Explicit override via EMAIL_BACKEND environment variable
+# 2. Resend HTTPS API backend (production default when RESEND_API_KEY is configured)
+# 3. Console backend (local development when DEBUG and no SMTP EMAIL_HOST)
+# 4. Fallback legacy SMTP backend
+if os.environ.get("EMAIL_BACKEND"):
+    EMAIL_BACKEND = os.environ["EMAIL_BACKEND"]
+elif RESEND_API_KEY:
+    EMAIL_BACKEND = "core.email_backend.ResendEmailBackend"
+elif DEBUG and not os.environ.get("EMAIL_HOST"):
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
-EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND") or (
-    "django.core.mail.backends.console.EmailBackend"
-    if DEBUG and not EMAIL_HOST
-    else "django.core.mail.backends.smtp.EmailBackend"
-)
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "25"))
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "False").lower() in {"1", "true", "yes", "on"}
 EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL", "False").lower() in {"1", "true", "yes", "on"}
 EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", "15"))
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "webmaster@localhost")
 
 SUPABASE_CONFIG = {
     "url": os.environ.get("SUPABASE_URL", "").rstrip("/"),
