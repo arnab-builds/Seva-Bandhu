@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sevabandhu-health-monitor",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-01",
+  "triggers": {
+    "crons": ["*/10 * * * *"]
+  },
+  "vars": {
+    "HEALTHCHECK_URL": "https://seva-bandhu.onrender.com/health/db/"
+  }
+}
+

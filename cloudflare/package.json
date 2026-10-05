@@ -1,0 +1,14 @@
+{
+  "name": "sevabandhu-health-monitor",
+  "version": "1.0.0",
+  "description": "Cloudflare Cron Worker for Seva Bandhu health monitoring",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node test/test_monitor.js"
+  },
+  "devDependencies": {
+    "wrangler": "^4.147.0"
+  }
+}
+

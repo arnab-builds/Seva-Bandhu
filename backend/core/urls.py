@@ -9,6 +9,13 @@ from django.conf.urls.static import static
 
 
 urlpatterns = [
+    # Health check endpoints for Render and Cloudflare Cron
+    path('health/', views.health_check, name='health_check'),
+    path('health/db/', views.health_check_db, name='health_check_db'),
+
+    # Supabase Auth Verification endpoint
+    path('auth/supabase-verify/', views.supabase_auth_verify, name='supabase_auth_verify'),
+
     path('', views.loader, name='loader'),
     path('home/', views.home, name='home'),
     path('base/', views.base, name='base'),
