@@ -137,23 +137,27 @@ if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # --- EMAIL CONFIGURATION ---
-RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "").strip()
-RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "").strip()
+BREVO_API_KEY = os.environ.get("BREVO_API_KEY", "").strip()
+BREVO_FROM_EMAIL = os.environ.get("BREVO_FROM_EMAIL", "").strip()
+BREVO_FROM_NAME = os.environ.get("BREVO_FROM_NAME", "").strip()
 
-if RESEND_FROM_EMAIL:
-    DEFAULT_FROM_EMAIL = RESEND_FROM_EMAIL
+if BREVO_FROM_EMAIL:
+    if BREVO_FROM_NAME:
+        DEFAULT_FROM_EMAIL = f"{BREVO_FROM_NAME} <{BREVO_FROM_EMAIL}>"
+    else:
+        DEFAULT_FROM_EMAIL = BREVO_FROM_EMAIL
 else:
     DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "webmaster@localhost")
 
 # Email backend selection:
 # 1. Explicit override via EMAIL_BACKEND environment variable
-# 2. Resend HTTPS API backend (production default when RESEND_API_KEY is configured)
+# 2. Brevo HTTPS API backend (production default when BREVO_API_KEY is configured)
 # 3. Console backend (local development when DEBUG and no SMTP EMAIL_HOST)
 # 4. Fallback legacy SMTP backend
 if os.environ.get("EMAIL_BACKEND"):
     EMAIL_BACKEND = os.environ["EMAIL_BACKEND"]
-elif RESEND_API_KEY:
-    EMAIL_BACKEND = "core.email_backend.ResendEmailBackend"
+elif BREVO_API_KEY:
+    EMAIL_BACKEND = "core.email_backend.BrevoEmailBackend"
 elif DEBUG and not os.environ.get("EMAIL_HOST"):
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 else:

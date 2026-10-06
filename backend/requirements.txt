@@ -44,4 +44,4 @@ scikit-learn==1.8.0
 cloudinary==1.46.3
 django-cloudinary-storage==0.3.0
 whitenoise==6.7.0
-resend==2.49.1
+brevo-python==5.0.2
