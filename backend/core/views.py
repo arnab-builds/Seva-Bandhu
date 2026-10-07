@@ -276,7 +276,7 @@ def technician_sign_up(request):
             user = User.objects.create_user(
                 username=username,
                 email=email,
-                password=''  # Password hashes live only on Django's User model.
+                password=password
             )
 
             # Create technician profile with all fields
@@ -285,7 +285,7 @@ def technician_sign_up(request):
                 username=username,
                 email=email,
                 contact=contact,
-                password=password
+                password=''
             )
 
             return redirect('technician_login')
@@ -300,7 +300,7 @@ def technician_sign_up(request):
 
 def technician_login(request):
     if request.method == "POST":
-        username = request.POST.get('username')
+        username = request.POST.get('username', '').strip()
         password = request.POST.get('password')
 
         user = authenticate(request, username=username, password=password)

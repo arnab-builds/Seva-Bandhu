@@ -49,3 +49,42 @@ class CustomerAccountFlowTests(TestCase):
         })
         self.assertContains(response, 'already exists for this email')
         self.assertEqual(User.objects.filter(email='customer@example.com').count(), 1)
+
+
+class TechnicianAccountFlowTests(TestCase):
+    def test_technician_signup_and_login_success_and_failure(self):
+        from core.models import Technician_signup
+
+        # 1. Sign up a new technician
+        signup_data = {
+            'username': 'tech_pro',
+            'email': 'tech_pro@example.com',
+            'contact': '9876543211',
+            'password': 'CorrectPassword123!',
+        }
+        resp = self.client.post(reverse('technician_signup'), signup_data)
+        self.assertRedirects(resp, reverse('technician_login'))
+
+        # Verify Django user and technician profile creation
+        user = User.objects.get(username='tech_pro')
+        tech_profile = Technician_signup.objects.get(user=user)
+        self.assertEqual(tech_profile.username, 'tech_pro')
+        self.assertEqual(tech_profile.email, 'tech_pro@example.com')
+        self.assertEqual(tech_profile.password, '')  # Plaintext password is not stored
+
+        # 2. Attempt login with INCORRECT password -> must fail
+        bad_login_resp = self.client.post(reverse('technician_login'), {
+            'username': 'tech_pro',
+            'password': 'WrongPassword999!',
+        })
+        self.assertEqual(bad_login_resp.status_code, 200)
+        self.assertContains(bad_login_resp, 'Invalid technician username or password')
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+        # 3. Attempt login with CORRECT password (with whitespace in username) -> must succeed
+        good_login_resp = self.client.post(reverse('technician_login'), {
+            'username': '  tech_pro  ',
+            'password': 'CorrectPassword123!',
+        })
+        self.assertRedirects(good_login_resp, reverse('technician_dashboard'))
+        self.assertEqual(int(self.client.session['_auth_user_id']), user.id)
