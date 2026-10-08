@@ -263,7 +263,7 @@
                     font-weight: bold;
                     margin-bottom: 3px;
                 ">
-          {{ service.customer_username|title }}
+          {% if customer_display_name %}{{ customer_display_name|title }}{% else %}{{ service.customer_username|title }}{% endif %}
         </div>
 
         <div>{{ service.service_detail.contact_number }}</div>

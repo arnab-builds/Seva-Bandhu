@@ -1290,10 +1290,51 @@ def start_tracking(request, id):
         'status': 'success'
     })
 
+def get_customer_display_name(customer=None, service=None):
+    """
+    Resolve customer display name with proper precedence:
+    1. Explicit customer/contact name on booking (if available)
+    2. Django User full name (if first_name/last_name populated)
+    3. Customer profile username
+    4. Final fallback: 'Valued Customer'
+    """
+    if service is not None:
+        service_detail = getattr(service, 'service_detail', None)
+        if service_detail is not None:
+            contact_name = getattr(service_detail, 'customer_name', None) or getattr(service_detail, 'contact_name', None)
+            if contact_name and str(contact_name).strip():
+                return str(contact_name).strip()
+
+        customer_name_attr = getattr(service, 'customer_name', None)
+        if customer_name_attr and str(customer_name_attr).strip():
+            return str(customer_name_attr).strip()
+
+    if customer is None and service is not None:
+        customer = getattr(service, 'customer', None)
+
+    user = getattr(customer, 'user', None) if customer else None
+    if user:
+        full_name = f"{getattr(user, 'first_name', '')} {getattr(user, 'last_name', '')}".strip()
+        if full_name:
+            return full_name
+
+    if customer and getattr(customer, 'username', None):
+        c_username = str(customer.username).strip()
+        if c_username:
+            return c_username
+
+    return "Valued Customer"
+
+
 def generate_invoice_pdf(service):
-    print('📄 generate_invoice_pdf called for service:', service.id)
+    print('[PDF] generate_invoice_pdf called for service:', service.id)
     template = get_template('customer/invoice.html')
-    html = template.render({'service': service})
+    customer = getattr(service, 'customer', None)
+    customer_display_name = get_customer_display_name(customer=customer, service=service)
+    html = template.render({
+        'service': service,
+        'customer_display_name': customer_display_name
+    })
     result = BytesIO()
     pdf_status = pisa.CreatePDF(src=html, dest=result)
 
@@ -1305,13 +1346,18 @@ def generate_invoice_pdf(service):
 
 
 def send_invoice_email(service):
-    print('✉️ send_invoice_email called for service:', service.id)
+    print('[EMAIL] send_invoice_email called for service:', service.id)
     customer = getattr(service, 'customer', None)
-    if not customer or not hasattr(customer, 'user'):
-        print('[ICON] Unable to resolve customer user for service:', service.id)
+    if not customer:
+        print('[ICON] Unable to resolve customer for service:', service.id)
         return False
 
-    recipient_email = customer.user.email
+    recipient_email = None
+    if hasattr(customer, 'user') and getattr(customer.user, 'email', None):
+        recipient_email = customer.user.email.strip()
+    if not recipient_email and getattr(customer, 'email', None):
+        recipient_email = customer.email.strip()
+
     if not recipient_email:
         print('[ICON] No recipient email for service:', service.id)
         return False
@@ -1321,9 +1367,11 @@ def send_invoice_email(service):
         print('[ICON] PDF generation returned no bytes for service:', service.id)
         return False
 
+    display_name = get_customer_display_name(customer=customer, service=service)
+
     subject = f"Seva Bandhu Invoice - Service Request #{service.id}"
     body = (
-        f"Hello {customer.user.username},\n\n"
+        f"Hello {display_name},\n\n"
         f"Thank you for completing the payment for your service request #{service.id}. "
         f"Your invoice is attached to this email.\n\n"
         "Best regards,\nSeva Bandhu Team"

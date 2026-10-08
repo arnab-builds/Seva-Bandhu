@@ -425,6 +425,17 @@ def admin_support_ticket_action(request, id):
                 from django.conf import settings
                 from django.utils.html import strip_tags
                 
+                from core.views import get_customer_display_name
+
+                customer_obj = getattr(ticket, 'customer', None)
+                customer_recipient = None
+                if customer_obj and hasattr(customer_obj, 'user') and getattr(customer_obj.user, 'email', None):
+                    customer_recipient = customer_obj.user.email.strip()
+                if not customer_recipient and customer_obj and getattr(customer_obj, 'email', None):
+                    customer_recipient = customer_obj.email.strip()
+
+                display_name = get_customer_display_name(customer=customer_obj)
+
                 subject = f"Update on your Seva Bandhu Support Ticket #{ticket.id}"
                 
                 html_message = f"""
@@ -433,7 +444,7 @@ def admin_support_ticket_action(request, id):
                         <h2 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 600;">Seva Bandhu Support</h2>
                     </div>
                     <div style="padding: 32px 24px;">
-                        <p style="font-size: 16px; color: #334155; margin-bottom: 20px;">Hello <strong>{ticket.customer.username}</strong>,</p>
+                        <p style="font-size: 16px; color: #334155; margin-bottom: 20px;">Hello <strong>{display_name}</strong>,</p>
                         
                         <p style="font-size: 15px; color: #475569; line-height: 1.6; margin-bottom: 24px;">
                             This email is to inform you that your support ticket <strong>#{ticket.id}</strong> regarding a <strong>{ticket.ticket_type}</strong> has been resolved by our team.
@@ -458,15 +469,18 @@ def admin_support_ticket_action(request, id):
                 """
                 plain_message = strip_tags(html_message)
                 
-                send_mail(
-                    subject,
-                    plain_message,
-                    settings.EMAIL_HOST_USER,
-                    [ticket.customer.email],
-                    html_message=html_message,
-                    fail_silently=False,
-                )
-                messages.success(request, f'Ticket #{ticket.id} marked as Resolved ({resolution_type}) and email sent to {ticket.customer.email}.')
+                if customer_recipient:
+                    send_mail(
+                        subject,
+                        plain_message,
+                        settings.EMAIL_HOST_USER,
+                        [customer_recipient],
+                        html_message=html_message,
+                        fail_silently=False,
+                    )
+                    messages.success(request, f'Ticket #{ticket.id} marked as Resolved ({resolution_type}) and email sent to {customer_recipient}.')
+                else:
+                    messages.warning(request, f'Ticket #{ticket.id} marked as Resolved, but no customer email address found.')
             except Exception as e:
                 messages.warning(request, f'Ticket #{ticket.id} marked as Resolved, but email failed to send: {str(e)}')
         else:
