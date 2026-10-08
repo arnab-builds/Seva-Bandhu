@@ -99,6 +99,18 @@
     border-color: #94a3b8;
 }
 
+.btn-action-danger {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.btn-action-danger:hover {
+    background: #dc2626;
+    color: #ffffff;
+    border-color: #dc2626;
+}
+
 /* Color Shaded Metric Cards Grid */
 .metrics-grid {
     display: grid;
@@ -562,6 +574,13 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
                 My Wallet (₹{{ customer.wallet_balance }})
             </a>
+            <form method="post" action="{% url 'customer_logout' %}" id="customerLogoutForm" style="display: inline-flex; margin: 0;">
+                {% csrf_token %}
+                <button type="submit" class="btn-action btn-action-danger" id="customerLogoutBtn" style="border: 1px solid #fecaca; cursor: pointer; font-family: inherit;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Sign Out
+                </button>
+            </form>
         </div>
     </div>
 
@@ -885,5 +904,35 @@
     </style>
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function() {
+    const logoutForm = document.getElementById('customerLogoutForm');
+    if (!logoutForm) return;
+
+    logoutForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('customerLogoutBtn');
+        if (btn) btn.disabled = true;
+
+        const supabaseUrl = "{{ supabase_config.url|default:'' }}";
+        const supabaseAnonKey = "{{ supabase_config.anon_key|default:'' }}";
+
+        if (window.supabase && supabaseUrl && supabaseAnonKey) {
+            try {
+                const client = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+                if (client && client.auth) {
+                    await client.auth.signOut();
+                }
+            } catch (err) {
+                console.warn('Supabase signOut error:', err);
+            }
+        }
+        // Authoritative Django logout
+        logoutForm.submit();
+    });
+})();
+</script>
 
 {% endblock %}

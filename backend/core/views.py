@@ -17,6 +17,8 @@ from django.utils import timezone
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.views.decorators.cache import never_cache
 from xhtml2pdf import pisa
 import json
 import os
@@ -78,6 +80,7 @@ def technician_api_notifications(request):
         })
     return JsonResponse({'status': 'success', 'notifications': data})
 
+@never_cache
 def technician_dashboard(request):
     if not request.user.is_authenticated:
         return redirect('technician_login')
@@ -321,6 +324,7 @@ def technician_login(request):
     return render(request, 'technician/login.html')
 
 
+@require_POST
 def technician_logout(request):
     logout(request)
     return redirect('technician_login')
@@ -372,6 +376,7 @@ def technician_complete_profile(request):
     return render(request, 'technician/complete_profile.html', context)
 
 
+@never_cache
 def customer_dashboard(request):
     if not request.user.is_authenticated:
         return redirect('customer_login')
@@ -388,37 +393,38 @@ def customer_dashboard(request):
         })
     
     # Get all service requests for this customer
-    service_requests = ServiceRequest.objects.filter(customer_username=customer.username).order_by('-created_at')
+    service_requests = list(ServiceRequest.objects.filter(customer_username=customer.username).order_by('-created_at'))
     
-    # Enrich service requests with technician information
+    # Enrich service requests with technician information in a single bulk query
+    technician_usernames = {sr.technician_username for sr in service_requests if sr.technician_username}
+    technicians_by_username = {}
+    if technician_usernames:
+        technicians_by_username = {
+            t.username: t for t in Technician_signup.objects.filter(username__in=technician_usernames)
+        }
+
     requests_with_technicians = []
     technicians_list = []
-    
+    seen_technicians = set()
+
     for service_request in service_requests:
-        request_data = {
-            'request': service_request,
-            'technician': None
-        }
-        
-        # If technician is assigned, fetch technician details
+        technician = None
         if service_request.technician_username:
-            try:
-                technician = Technician_signup.objects.get(username=service_request.technician_username)
-                request_data['technician'] = technician
-                
-                # Collect unique technicians
-                if technician not in technicians_list:
-                    technicians_list.append(technician)
-            except Technician_signup.DoesNotExist:
-                pass
-        
-        requests_with_technicians.append(request_data)
+            technician = technicians_by_username.get(service_request.technician_username)
+            if technician and technician.id not in seen_technicians:
+                technicians_list.append(technician)
+                seen_technicians.add(technician.id)
+
+        requests_with_technicians.append({
+            'request': service_request,
+            'technician': technician
+        })
     
-    # Calculate statistics
-    total_requests = service_requests.count()
-    pending_requests = service_requests.filter(status='Pending').count()
-    in_progress_requests = service_requests.filter(status='In Progress').count()
-    completed_requests = service_requests.filter(status='Completed').count()
+    # Calculate statistics from the in-memory list
+    total_requests = len(service_requests)
+    pending_requests = sum(1 for sr in service_requests if sr.status == 'Pending')
+    in_progress_requests = sum(1 for sr in service_requests if sr.status == 'In Progress')
+    completed_requests = sum(1 for sr in service_requests if sr.status == 'Completed')
     
     # Get recent requests (last 5)
     recent_requests = requests_with_technicians[:5]
@@ -431,14 +437,17 @@ def customer_dashboard(request):
     from core.models import RecommendationLog
     recommended_services = get_recommendations(customer.username, max_results=3)
     
-    # Log impressions
-    for rec in recommended_services:
-        RecommendationLog.objects.create(
-            customer=customer,
-            service=rec['service'],
-            recommendation_score=rec['recommendation_score'],
-            reason=rec['reason']
-        )
+    # Log impressions in bulk
+    if recommended_services:
+        RecommendationLog.objects.bulk_create([
+            RecommendationLog(
+                customer=customer,
+                service=rec['service'],
+                recommendation_score=rec['recommendation_score'],
+                reason=rec['reason']
+            )
+            for rec in recommended_services
+        ])
 
     # Fetch Welcome Offer
     from core.services.offer_engine import OfferEngine
@@ -1094,6 +1103,7 @@ def customer_login(request):
     return render(request, 'customer/login.html')
 
 
+@require_POST
 def customer_logout(request):
     logout(request)
     return redirect('customer_login')

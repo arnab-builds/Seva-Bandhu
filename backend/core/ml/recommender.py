@@ -1,9 +1,45 @@
 import os
+import threading
 import joblib
 import numpy as np
 from core.models import ServiceRequest, Service
 
 MODEL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'model')
+
+# Module-level model cache and lock
+_MODEL_LOCK = threading.Lock()
+_CACHED_KNN = None
+_CACHED_PIVOT = None
+_MODELS_CHECKED = False
+
+
+def _get_loaded_models():
+    """
+    Thread-safe lazy loader for the KNN model and interaction matrix.
+    Loads models once per Python process/worker and caches them in memory.
+    """
+    global _CACHED_KNN, _CACHED_PIVOT, _MODELS_CHECKED
+
+    if _MODELS_CHECKED:
+        return _CACHED_KNN, _CACHED_PIVOT
+
+    with _MODEL_LOCK:
+        if not _MODELS_CHECKED:
+            knn_path = os.path.join(MODEL_DIR, 'knn_model.joblib')
+            matrix_path = os.path.join(MODEL_DIR, 'interaction_matrix.joblib')
+
+            if os.path.exists(knn_path) and os.path.exists(matrix_path):
+                try:
+                    _CACHED_KNN = joblib.load(knn_path)
+                    _CACHED_PIVOT = joblib.load(matrix_path)
+                except Exception as e:
+                    print(f"[RECS] Error loading recommendation models: {e}")
+                    _CACHED_KNN = None
+                    _CACHED_PIVOT = None
+            _MODELS_CHECKED = True
+
+    return _CACHED_KNN, _CACHED_PIVOT
+
 
 def get_recommendations(customer_username, max_results=3):
     """
@@ -11,50 +47,45 @@ def get_recommendations(customer_username, max_results=3):
     """
     all_services = list(Service.objects.filter(is_enabled=True))
     service_map = {s.name: s for s in all_services}
-    
-    knn_path = os.path.join(MODEL_DIR, 'knn_model.joblib')
-    matrix_path = os.path.join(MODEL_DIR, 'interaction_matrix.joblib')
-    
-    has_model = os.path.exists(knn_path) and os.path.exists(matrix_path)
-    
-    if has_model:
-        knn = joblib.load(knn_path)
-        pivot = joblib.load(matrix_path)
 
+    knn, pivot = _get_loaded_models()
+
+    if knn is not None and pivot is not None:
         if getattr(knn, 'n_features_in_', None) != pivot.shape[1]:
             return _get_fallback_recommendations(service_map, max_results)
-        
+
         if customer_username in pivot.index:
             # We have history for this user, do CF
             user_idx = pivot.index.get_loc(customer_username)
             user_vector = pivot.iloc[user_idx].values.reshape(1, -1)
-            
+
             # Find neighbors
             distances, indices = knn.kneighbors(user_vector, n_neighbors=min(5, len(pivot)))
-            
+
             # Aggregate neighbors' preferences
             neighbor_vectors = pivot.iloc[indices[0]].values
-            weights = 1.0 - distances[0] # cosine similarity
-            
+            weights = np.asarray(1.0 - distances[0])  # cosine similarity
+
             # Avoid division by zero if weights sum to 0
             if weights.sum() > 0:
                 weighted_sum = np.average(neighbor_vectors, axis=0, weights=weights)
             else:
                 weighted_sum = np.zeros_like(user_vector[0])
-            
+
             # Combine with user's own history (heavy weight to their own history)
             final_scores = (user_vector[0] * 0.7) + (weighted_sum * 0.3)
-            
+
             # Create ranking
             ranking = []
             for i, col in enumerate(pivot.columns):
                 ranking.append((col, final_scores[i], i))
-            
+
             ranking.sort(key=lambda x: x[1], reverse=True)
-            
+
             recs = []
             for service_name, score, idx in ranking:
-                if len(recs) >= max_results: break
+                if len(recs) >= max_results:
+                    break
                 if service_name in service_map and score > 0:
                     reason = "Based on your recent service history" if user_vector[0][idx] > 0 else "Customers with similar service histories also booked this"
                     recs.append({
@@ -62,28 +93,28 @@ def get_recommendations(customer_username, max_results=3):
                         "recommendation_score": round(score, 2),
                         "reason": reason
                     })
-            
+
             # If not enough, pad
             if len(recs) < max_results:
                 recs.extend(_get_fallback_recommendations(service_map, max_results - len(recs), exclude=[r['service'].name for r in recs]))
-                
+
             return recs
-            
-        elif os.path.exists(matrix_path):
+
+        else:
             # User not in model (Cold start, but model exists)
-            # Maybe fallback to general popularity using the interaction matrix
-            pivot = joblib.load(matrix_path)
+            # Fallback to general popularity using the interaction matrix
             popular = pivot.sum(axis=0).sort_values(ascending=False)
             recs = []
             for service_name, score in popular.items():
-                if len(recs) >= max_results: break
+                if len(recs) >= max_results:
+                    break
                 if service_name in service_map:
                     recs.append({
                         "service": service_map[service_name],
                         "recommendation_score": round(score, 2),
                         "reason": "Popular service in your area"
                     })
-            
+
             if len(recs) < max_results:
                 recs.extend(_get_fallback_recommendations(service_map, max_results - len(recs), exclude=[r['service'].name for r in recs]))
             return recs
