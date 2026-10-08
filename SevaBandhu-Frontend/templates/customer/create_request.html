@@ -396,9 +396,19 @@
     {% if customer %}
     <div class="user-strip">
         <div class="user-strip-info">
-            <div class="user-avatar-sm">{{ customer.username|upper|first }}</div>
+            <div class="user-avatar-sm">
+                {% if customer_display_name %}
+                    {{ customer_display_name|upper|first }}
+                {% elif request.user.first_name %}
+                    {{ request.user.first_name|upper|first }}
+                {% elif customer.username %}
+                    {{ customer.username|upper|first }}
+                {% else %}
+                    C
+                {% endif %}
+            </div>
             <div class="user-text-details">
-                <strong>Booking Account: {{ customer.username }}</strong>
+                <strong>Booking Account: {% if customer_display_name %}{{ customer_display_name }}{% elif request.user.first_name %}{{ request.user.get_full_name|default:request.user.first_name }}{% elif customer.username %}{{ customer.username }}{% else %}Valued Customer{% endif %}</strong>
                 <span>{{ customer.email }} • Contact: {{ customer.contact|default:"Provided in Form" }}</span>
             </div>
         </div>

@@ -260,3 +260,25 @@ class SecureLogoutFlowTests(TestCase):
         # Check cache-control headers
         self.assertIn('no-cache', resp.headers.get('Cache-Control', ''))
 
+    def test_14_customer_create_request_renders_customer_display_name(self):
+        # 1. When user has first_name and last_name
+        self.cust_user.first_name = "Arnab"
+        self.cust_user.last_name = "Paul"
+        self.cust_user.save()
+
+        self.client.force_login(self.cust_user)
+        resp = self.client.get(reverse('customer_create_request'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Booking Account: Arnab Paul")
+        self.assertContains(resp, self.cust.email)
+        self.assertContains(resp, f"Contact: {self.cust.contact}")
+
+        # 2. When user has no first_name/last_name, fallback to customer username
+        self.cust_user.first_name = ""
+        self.cust_user.last_name = ""
+        self.cust_user.save()
+        resp_fallback = self.client.get(reverse('customer_create_request'))
+        self.assertEqual(resp_fallback.status_code, 200)
+        self.assertContains(resp_fallback, f"Booking Account: {self.cust.username}")
+
+

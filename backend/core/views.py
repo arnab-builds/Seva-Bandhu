@@ -807,12 +807,16 @@ def customer_create_request(request):
             return redirect('customer_my_requests')
         
         except Exception as e:
+            customer_display_name = get_customer_display_name(customer=customer)
             return render(request, 'customer/create_request.html', {
                 'customer': customer,
+                'customer_display_name': customer_display_name,
                 'error': f'Error creating request: {str(e)}'
             })
+    customer_display_name = get_customer_display_name(customer=customer)
     return render(request, 'customer/create_request.html', {
         'customer': customer,
+        'customer_display_name': customer_display_name,
         'selected_service': selected_service,
         'smart_offer': smart_offer,
         'ml_context_msg': ml_context_msg
