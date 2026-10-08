@@ -1506,26 +1506,20 @@ def supabase_auth_verify(request):
     if not email:
         return JsonResponse({"status": "failed", "message": "No email associated with account"}, status=400)
 
-    # Role contamination prevention
-    if role == "customer":
-        if Technician_signup.objects.filter(email=email).exists():
-            return JsonResponse({"status": "failed", "message": "Email already registered as a Technician"}, status=403)
-    elif role == "technician":
-        if customer_signup.objects.filter(email=email).exists():
-            return JsonResponse({"status": "failed", "message": "Email already registered as a Customer"}, status=403)
+    email = email.strip().lower()
 
-    user = User.objects.filter(email=email).first()
+    user = User.objects.filter(email__iexact=email).first()
     if not user:
         base_username = email.split("@")[0]
         username = base_username
-        while User.objects.filter(username=username).exists():
+        while User.objects.filter(username__iexact=username).exists():
             username = f"{base_username}_{random.randint(1000, 9999)}"
 
         password = secrets.token_urlsafe(32)
         user = User.objects.create_user(username=username, email=email, password=password)
 
     if role == "customer":
-        cust = customer_signup.objects.filter(email=email).first()
+        cust = customer_signup.objects.filter(email__iexact=email).first()
         if not cust:
             cust = customer_signup.objects.create(
                 user=user,
@@ -1540,7 +1534,7 @@ def supabase_auth_verify(request):
             cust.save(update_fields=["email_verified"])
         redirect_url = reverse("customer_dashboard")
     else:  # technician
-        tech = Technician_signup.objects.filter(email=email).first()
+        tech = Technician_signup.objects.filter(email__iexact=email).first()
         if not tech:
             tech = Technician_signup.objects.create(
                 user=user,
