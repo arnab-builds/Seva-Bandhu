@@ -21,6 +21,7 @@ from xhtml2pdf import pisa
 import json
 import os
 import sys
+import re
 import urllib.request
 import urllib.error
 import random
@@ -1518,6 +1519,24 @@ def supabase_auth_verify(request):
         password = secrets.token_urlsafe(32)
         user = User.objects.create_user(username=username, email=email, password=password)
 
+    def _get_user_mobile(u):
+        placeholders = {"google user", "google tech", ""}
+        customer = getattr(u, "customer_signup", None)
+        if customer and customer.contact:
+            val = customer.contact.strip()
+            if val.lower() not in placeholders:
+                return val
+
+        technician = getattr(u, "technician_signup", None)
+        if technician and technician.contact:
+            val = technician.contact.strip()
+            if val.lower() not in placeholders:
+                return val
+
+        return None
+
+    existing_mobile = _get_user_mobile(user) or ""
+
     if role == "customer":
         cust = customer_signup.objects.filter(email__iexact=email).first()
         if not cust:
@@ -1525,14 +1544,13 @@ def supabase_auth_verify(request):
                 user=user,
                 username=user.username,
                 email=email,
-                contact=data.get("contact") or "Google User",
+                contact=existing_mobile,
                 email_verified=True,
-                phone_verified=True,
+                phone_verified=False,
             )
         else:
             cust.email_verified = True
             cust.save(update_fields=["email_verified"])
-        redirect_url = reverse("customer_dashboard")
     else:  # technician
         tech = Technician_signup.objects.filter(email__iexact=email).first()
         if not tech:
@@ -1540,15 +1558,57 @@ def supabase_auth_verify(request):
                 user=user,
                 username=user.username,
                 email=email,
-                contact=data.get("contact") or "Google Tech",
+                contact=existing_mobile,
             )
-        redirect_url = reverse("technician_dashboard")
+
+    has_mobile = bool(_get_user_mobile(user))
+    if has_mobile:
+        if role == "customer":
+            redirect_url = reverse("customer_dashboard")
+        else:
+            redirect_url = reverse("technician_dashboard")
+    else:
+        redirect_url = f"{reverse('complete_google_profile')}?next={role}"
 
     login(request, user)
     return JsonResponse({
         "status": "success",
         "redirect_url": redirect_url
     })
+
+
+@login_required
+def complete_google_profile(request):
+    requested_role = request.GET.get("next") or request.POST.get("next") or "customer"
+    if requested_role not in ("customer", "technician"):
+        requested_role = "customer"
+
+    destination_url = reverse("customer_dashboard") if requested_role == "customer" else reverse("technician_dashboard")
+
+    error = None
+    if request.method == "POST":
+        mobile = request.POST.get("mobile", "").strip()
+        if not re.match(r"^[6-9]\d{9}$", mobile):
+            error = "Please enter a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9."
+        else:
+            cust = customer_signup.objects.filter(user=request.user).first()
+            if cust:
+                cust.contact = mobile
+                cust.phone_verified = False
+                cust.save(update_fields=["contact", "phone_verified"])
+
+            tech = Technician_signup.objects.filter(user=request.user).first()
+            if tech:
+                tech.contact = mobile
+                tech.save(update_fields=["contact"])
+
+            return redirect(destination_url)
+
+    context = {
+        "next": requested_role,
+        "error": error,
+    }
+    return render(request, "auth/complete_profile.html", context)
 
 
 def customer_google_auth(request):

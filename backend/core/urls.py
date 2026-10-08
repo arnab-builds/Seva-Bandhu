@@ -15,6 +15,7 @@ urlpatterns = [
 
     # Supabase Auth Verification endpoint
     path('auth/supabase-verify/', views.supabase_auth_verify, name='supabase_auth_verify'),
+    path('auth/complete-profile/', views.complete_google_profile, name='complete_google_profile'),
 
     path('', views.loader, name='loader'),
     path('home/', views.home, name='home'),
