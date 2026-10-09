@@ -37,7 +37,7 @@ Supabase PostgreSQL (SELECT 1)
 
 | Variable | Description | Example |
 | :--- | :--- | :--- |
-| `HEALTHCHECK_URL` | Render Django DB health endpoint | `https://seva-bandhu.onrender.com/health/db/` |
+| `HEALTHCHECK_URL` | Render Django DB health endpoint | `https://seva-bandhu-41dh.onrender.com/health/db/` |
 | `SUPABASE_HEALTH_URL` | *(Optional)* Independent Supabase REST/Auth endpoint | `https://<project-ref>.supabase.co/rest/v1/` |
 | `SUPABASE_ANON_KEY` | *(Optional)* Supabase public anon key | `ey...` |
 

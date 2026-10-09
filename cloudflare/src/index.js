@@ -131,9 +131,15 @@ export async function runHealthCheck(env) {
   };
 
   // Safe structured logging - never logs auth headers or credentials
-  console.log(
-    `[HealthCheck] ${timestamp} | Render: ${renderResult.status} (${renderResult.detail}) | Supabase: ${supabaseResult.status} (${supabaseResult.detail})`
-  );
+  if (renderResult.status !== "HEALTHY") {
+    console.error(
+      `[HealthCheck FAILED] ${timestamp} | Render: ${renderResult.status} (${renderResult.detail}) | Supabase: ${supabaseResult.status} (${supabaseResult.detail})`
+    );
+  } else {
+    console.log(
+      `[HealthCheck] ${timestamp} | Render: ${renderResult.status} (${renderResult.detail}) | Supabase: ${supabaseResult.status} (${supabaseResult.detail})`
+    );
+  }
 
   return summary;
 }
@@ -141,7 +147,12 @@ export async function runHealthCheck(env) {
 export default {
   // Cloudflare Cron Scheduled handler
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(runHealthCheck(env));
+    const summary = await runHealthCheck(env);
+    if (summary.render !== "HEALTHY") {
+      const errMsg = `Health check failed: Render is ${summary.render} (${summary.render_detail})`;
+      console.error(`[CronTrigger Error] ${errMsg}`);
+      throw new Error(errMsg);
+    }
   },
 
   // HTTP Fetch handler (for on-demand invocation or testing)
