@@ -43,7 +43,7 @@
                 <tr>
                     <td style="font-weight: 600; color: #64748b;">#WD_{{ withdrawal.id }}</td>
                     <td>
-                        <div style="font-weight: 700; color: #0f172a;">{{ withdrawal.technician.username }}</div>
+                        <div style="font-weight: 700; color: #0f172a;">{{ withdrawal.technician.display_name|default:withdrawal.technician.username }}</div>
                         <div style="font-size: 11px; color: #64748b;">Wallet Bal: ₹{{ withdrawal.technician.wallet.available_balance|default:"0.00" }}</div>
                     </td>
                     <td style="font-weight: 800; color: #0f172a;">₹{{ withdrawal.amount }}</td>

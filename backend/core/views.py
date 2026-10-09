@@ -41,6 +41,11 @@ from .models import (
     ServiceAddress,
     Service,
 )
+from core.identity import (
+    get_customer_display_name,
+    get_technician_display_name,
+    get_user_common_email,
+)
 
 def home(request):
     return render(request, 'home.html')
@@ -86,8 +91,10 @@ def technician_dashboard(request):
         return redirect('technician_login')
     
     try:
-        # [ICON] FIX: always fetch technician using username (same as assignment logic)
-        technician = Technician_signup.objects.filter(
+        # [ICON] Fetch technician with user relation for display-name resolution
+        technician = Technician_signup.objects.select_related('user').filter(
+            user=request.user
+        ).first() or Technician_signup.objects.select_related('user').filter(
             username__iexact=request.user.username.strip()
         ).first()
 
@@ -135,6 +142,7 @@ def technician_dashboard(request):
     
     context = {
         'technician': technician,
+        'technician_display_name': technician.display_name,
         'assigned_jobs': assigned_jobs,
         'total_jobs': total_jobs,
         'pending_jobs': assigned_jobs_count,
@@ -400,7 +408,7 @@ def customer_dashboard(request):
     technicians_by_username = {}
     if technician_usernames:
         technicians_by_username = {
-            t.username: t for t in Technician_signup.objects.filter(username__in=technician_usernames)
+            t.username: t for t in Technician_signup.objects.filter(username__in=technician_usernames).select_related('user')
         }
 
     requests_with_technicians = []
@@ -465,6 +473,7 @@ def customer_dashboard(request):
 
     context = {
         'customer': customer,
+        'customer_display_name': customer.display_name,
         'service_requests': recent_requests,
         'technicians': technicians_list,
         'total_requests': total_requests,
@@ -519,6 +528,7 @@ def customer_account(request):
     
     context = {
         'customer': customer,
+        'customer_display_name': customer.display_name,
         'my_offers': offers,
         'available_global_offers': available_global_offers,
         'referrals': referrals,
@@ -848,7 +858,7 @@ def customer_my_requests(request):
         technician = None
         if req.technician_username:  # Fetch technician for ANY status if one is assigned
             try:
-                technician = Technician_signup.objects.get(username=req.technician_username)
+                technician = Technician_signup.objects.select_related('user').get(username=req.technician_username)
             except Technician_signup.DoesNotExist:
                 technician = None
         rating = getattr(req, 'technician_rating', None)
@@ -861,6 +871,7 @@ def customer_my_requests(request):
     
     context = {
         'customer': customer,
+        'customer_display_name': customer.display_name,
         'service_requests': requests_with_technician,
     }
     
@@ -1304,40 +1315,6 @@ def start_tracking(request, id):
         'status': 'success'
     })
 
-def get_customer_display_name(customer=None, service=None):
-    """
-    Resolve customer display name with proper precedence:
-    1. Explicit customer/contact name on booking (if available)
-    2. Django User full name (if first_name/last_name populated)
-    3. Customer profile username
-    4. Final fallback: 'Valued Customer'
-    """
-    if service is not None:
-        service_detail = getattr(service, 'service_detail', None)
-        if service_detail is not None:
-            contact_name = getattr(service_detail, 'customer_name', None) or getattr(service_detail, 'contact_name', None)
-            if contact_name and str(contact_name).strip():
-                return str(contact_name).strip()
-
-        customer_name_attr = getattr(service, 'customer_name', None)
-        if customer_name_attr and str(customer_name_attr).strip():
-            return str(customer_name_attr).strip()
-
-    if customer is None and service is not None:
-        customer = getattr(service, 'customer', None)
-
-    user = getattr(customer, 'user', None) if customer else None
-    if user:
-        full_name = f"{getattr(user, 'first_name', '')} {getattr(user, 'last_name', '')}".strip()
-        if full_name:
-            return full_name
-
-    if customer and getattr(customer, 'username', None):
-        c_username = str(customer.username).strip()
-        if c_username:
-            return c_username
-
-    return "Valued Customer"
 
 
 def generate_invoice_pdf(service):
@@ -1345,9 +1322,12 @@ def generate_invoice_pdf(service):
     template = get_template('customer/invoice.html')
     customer = getattr(service, 'customer', None)
     customer_display_name = get_customer_display_name(customer=customer, service=service)
+    technician = getattr(service, 'technician', None)
+    technician_display_name = get_technician_display_name(technician=technician, service=service)
     html = template.render({
         'service': service,
-        'customer_display_name': customer_display_name
+        'customer_display_name': customer_display_name,
+        'technician_display_name': technician_display_name,
     })
     result = BytesIO()
     pdf_status = pisa.CreatePDF(src=html, dest=result)
@@ -2039,7 +2019,7 @@ def create_customer_complaint_service(customer, request_id, ticket_type, descrip
         customer=customer,
         ticket_type=ticket_type,
         service_request_id=str(service_req.id), # Fallback for old views
-        technician_name=technician.username,    # Fallback for old views
+        technician_name=get_technician_display_name(technician=technician),
         related_booking=service_req,            # Strict mapping
         related_technician=technician,          # Strict mapping
         description=full_description,
@@ -2116,7 +2096,7 @@ def customer_api_verify_request(request):
                 
             return JsonResponse({
                 'status': 'success', 
-                'technician_name': service_req.technician_username,
+                'technician_name': get_technician_display_name(technician=service_req.technician, service=service_req),
                 'service_name': service_req.service_detail.service_category if hasattr(service_req, 'service_detail') else 'Service'
             })
             

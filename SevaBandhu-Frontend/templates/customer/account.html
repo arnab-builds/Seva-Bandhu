@@ -199,7 +199,7 @@
                 </h3>
                 <div style="text-align: center; margin-bottom: 24px;">
                     <div style="width: 80px; height: 80px; background: #2563eb; color: #ffffff; font-size: 32px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; margin-bottom: 12px;">
-                        {{ customer.username|upper|first }}
+                        {{ customer_display_name|default:customer.display_name|default:customer.username|upper|first }}
                     </div>
                     <div style="font-size: 12px; background: #dcfce7; color: #15803d; display: inline-block; padding: 4px 10px; border-radius: 6px; font-weight: 600;">
                         Verified Customer
@@ -207,12 +207,16 @@
                 </div>
 
                 <div class="profile-info-row">
+                    <label>Full Name</label>
+                    <p>{{ customer_display_name|default:customer.display_name|default:customer.username }}</p>
+                </div>
+                <div class="profile-info-row">
                     <label>Username</label>
                     <p>{{ customer.username }}</p>
                 </div>
                 <div class="profile-info-row">
                     <label>Email Address</label>
-                    <p>{{ customer.email }}</p>
+                    <p>{{ customer.common_email|default:customer.email }}</p>
                 </div>
                 <div class="profile-info-row">
                     <label>Contact Number</label>

@@ -25,10 +25,10 @@
                         {{ ref.created_at|date:"M d, Y h:i A" }}
                     </td>
                     <td style="padding: 16px;">
-                        <strong style="color: #2563eb; display: block;">{{ ref.referrer.user.username }}</strong>
+                        <strong style="color: #2563eb; display: block;">{{ ref.referrer.display_name|default:ref.referrer.user.username }}</strong>
                     </td>
                     <td style="padding: 16px;">
-                        <strong style="color: #0f172a; display: block;">{{ ref.referee.user.username }}</strong>
+                        <strong style="color: #0f172a; display: block;">{{ ref.referee.display_name|default:ref.referee.user.username }}</strong>
                     </td>
                     <td style="padding: 16px; color: #15803d; font-weight: 700;">
                         + ₹{{ ref.reward_amount }}

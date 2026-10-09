@@ -164,7 +164,7 @@
 
         <div class="form-group-item">
             <label for="name">Technician Name</label>
-            <input type="text" id="name" name="name" value="{{ technician.username }}" readonly class="field-readonly">
+            <input type="text" id="name" name="name" value="{{ technician.display_name|default:technician.username }}" readonly class="field-readonly">
         </div>
 
         <div class="form-group-item">

@@ -3,7 +3,7 @@
 {% block content %}
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
         <div>
-            <h1>Customer Profile: {{ customer.username }}</h1>
+            <h1>Customer Profile: {{ customer.display_name|default:customer.username }}</h1>
             <p style="color:#64748b; font-size:14px; margin:0;">Detailed profile records, verification status, and historical bookings.</p>
         </div>
         <a href="{% url 'admin_customers_list' %}" class="btn btn-secondary">← Back to Directory</a>
@@ -15,7 +15,7 @@
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
             <div style="background:#f8fafc; padding:16px; border-radius:10px; border:1px solid #e2e8f0;">
                 <span style="display:block; font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Email Address</span>
-                <strong style="font-size:14px; color:#0f172a;">{{ customer.email }}</strong>
+                <strong style="font-size:14px; color:#0f172a;">{{ customer.common_email|default:customer.email }}</strong>
             </div>
 
             <div style="background:#f8fafc; padding:16px; border-radius:10px; border:1px solid #e2e8f0;">
@@ -77,7 +77,7 @@
                 <tr>
                     <td><strong style="color:#2563eb;">#REQ-{{ req.id }}</strong></td>
                     <td><strong>{{ req.service_detail.service_category }}</strong></td>
-                    <td>{{ req.technician_username|default:"Unassigned" }}</td>
+                    <td>{{ req.technician_display_name|default:req.technician_username|default:"Unassigned" }}</td>
                     <td>
                         {% if req.status == 'Completed' %}
                             <span class="badge badge-success">Completed</span>

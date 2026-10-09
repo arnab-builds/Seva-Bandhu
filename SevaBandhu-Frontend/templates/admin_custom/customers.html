@@ -28,12 +28,15 @@
                     <td>
                         <div style="display:flex; align-items:center; gap:10px;">
                             <span style="width:34px; height:34px; border-radius:8px; background:#0f172a; color:#ffffff; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center;">
-                                {{ customer.username|upper|first }}
+                                {{ customer.display_name|default:customer.username|upper|first }}
                             </span>
-                            <strong style="color:#0f172a;">{{ customer.username }}</strong>
+                            <div>
+                                <strong style="color:#0f172a;">{{ customer.display_name|default:customer.username }}</strong>
+                                <small style="display:block; color:#64748b; font-size:11px;">@{{ customer.username }}</small>
+                            </div>
                         </div>
                     </td>
-                    <td style="color:#64748b;">{{ customer.email }}</td>
+                    <td style="color:#64748b;">{{ customer.common_email|default:customer.email }}</td>
                     <td>{{ customer.contact|default:"N/A" }}</td>
                     <td>
                         {% if customer.user.is_active %}

@@ -27,7 +27,7 @@
                 {% for ticket in tickets %}
                 <tr>
                     <td>#TS-{{ ticket.id }}</td>
-                    <td>{{ ticket.technician.username }}</td>
+                    <td>{{ ticket.technician.display_name|default:ticket.technician.username }}</td>
                     <td>{{ ticket.category }}</td>
                     <td>{{ ticket.issue }}</td>
                     <td>

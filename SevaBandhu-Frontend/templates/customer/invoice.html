@@ -295,7 +295,11 @@
             </td>
 
             <td class="text-right" style="padding-bottom: 5px;">
-              {% if service.technician_username %}
+              {% if technician_display_name %}
+              {{ technician_display_name|title }}
+              {% elif service.technician_display_name %}
+              {{ service.technician_display_name|title }}
+              {% elif service.technician_username %}
               {{ service.technician_username|title }}
               {% else %}
               Not Assigned

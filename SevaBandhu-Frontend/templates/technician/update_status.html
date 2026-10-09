@@ -162,7 +162,7 @@
                 </div>
                 <div class="summary-row">
                     <span class="summary-label">Customer Name</span>
-                    <span class="summary-val">{{ job.customer_username }}</span>
+                    <span class="summary-val">{{ job.customer_display_name|default:job.customer_username }}</span>
                 </div>
                 <div class="summary-row">
                     <span class="summary-label">Current Status</span>

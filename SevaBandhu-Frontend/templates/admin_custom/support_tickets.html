@@ -49,7 +49,7 @@
                         {{ ticket.ticket_type }}
                     </span>
                 </td>
-                <td>{{ ticket.customer.username }}<br><small style="color:#64748b;">{{ ticket.customer.email }}</small></td>
+                <td>{{ ticket.customer.display_name|default:ticket.customer.username }}<br><small style="color:#64748b;">{{ ticket.customer.common_email|default:ticket.customer.email }}</small></td>
                 <td>
                     {% if ticket.service_request_id %}
                     <span style="font-family: ui-monospace, monospace; font-size: 12.5px; font-weight: 700; color: #2563eb; background: #eff6ff; border: 1px solid #bfdbfe; padding: 2px 6px; border-radius: 4px;">#{{ ticket.service_request_id }}</span>
@@ -57,7 +57,7 @@
                     <span style="color:#94a3b8;">-</span>
                     {% endif %}
                 </td>
-                <td>{{ ticket.technician_name|default:"-" }}</td>
+                <td>{{ ticket.technician_display_name|default:ticket.technician_name|default:"-" }}</td>
                 <td style="max-width: 250px; white-space: normal; font-size: 13px;">{{ ticket.description }}</td>
                 <td>
                     <span class="badge {% if ticket.status == 'Resolved' %}badge-success{% else %}badge-info{% endif %}">

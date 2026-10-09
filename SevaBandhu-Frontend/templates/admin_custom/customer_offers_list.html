@@ -22,7 +22,7 @@
                 {% for co in customer_offers %}
                 <tr style="border-bottom: 1px solid #f1f5f9;">
                     <td style="padding: 16px;">
-                        <strong style="color: #0f172a; display: block;">{{ co.customer.user.username }}</strong>
+                        <strong style="color: #0f172a; display: block;">{{ co.customer.display_name|default:co.customer.user.username }}</strong>
                     </td>
                     <td style="padding: 16px;">
                         <code style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-weight: 700; color: #2563eb; font-size: 12px; border: 1px solid #e2e8f0;">{{ co.offer.code }}</code>

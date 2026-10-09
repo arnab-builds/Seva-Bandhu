@@ -640,7 +640,7 @@ setInterval(() => {
     <div class="page-header">
         <div class="header-title">
             <h1>Technician Partner Workspace</h1>
-            <p>Welcome back, <strong>{{ technician.username }}</strong>! 
+            <p>Welcome back, <strong>{{ technician_display_name|default:technician.display_name|default:technician.username }}</strong>! 
                <span style="background:#fef9c3; color:#a16207; padding:2px 8px; border-radius:12px; font-weight:600; font-size:12px; margin-left:6px;">⭐ {{ technician.final_rating }} / 5 ({{ technician.rating_count }} Ratings)</span>
                {% if technician.active_warning_count > 0 %}
                <span onclick="openWarningsModal()" style="cursor:pointer; background:#fee2e2; color:#b91c1c; padding:2px 8px; border-radius:12px; font-weight:600; font-size:12px; margin-left:6px; transition:opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">⚠️ {{ technician.active_warning_count }} Warnings (View)</span>
@@ -681,7 +681,7 @@ setInterval(() => {
 
 
             <button class="profile-avatar-btn" onclick="openProfileModal()" title="View Profile">
-                {{ technician.username|upper|first }}
+                {{ technician_display_name|default:technician.display_name|default:technician.username|upper|first }}
             </button>
         </div>
     </div>
@@ -874,7 +874,7 @@ setInterval(() => {
             <div class="profile-field-group">
                 <div class="profile-field-item">
                     <label>Full Name</label>
-                    <value>{{ technician.username }}</value>
+                    <value>{{ technician_display_name|default:technician.display_name|default:technician.username }}</value>
                 </div>
                 <div class="profile-field-item">
                     <label>Performance Rating</label>
@@ -890,7 +890,7 @@ setInterval(() => {
                 </div>
                 <div class="profile-field-item">
                     <label>Email Address</label>
-                    <value>{{ technician.email }}</value>
+                    <value>{{ technician.common_email|default:technician.email }}</value>
                 </div>
                 <div class="profile-field-item">
                     <label>Contact Phone</label>

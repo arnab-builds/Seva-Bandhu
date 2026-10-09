@@ -3,7 +3,7 @@
 {% block content %}
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
         <div>
-            <h1>Technician Profile: {{ technician.username }}</h1>
+            <h1>Technician Profile: {{ technician.display_name|default:technician.username }}</h1>
             <p style="color:#64748b; font-size:14px; margin:0;">Field experience, service category specialization, and job history.</p>
         </div>
         <a href="{% url 'admin_technicians_list' %}" class="btn btn-secondary">← Back to Directory</a>
@@ -15,7 +15,7 @@
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
             <div style="background:#f8fafc; padding:16px; border-radius:10px; border:1px solid #e2e8f0;">
                 <span style="display:block; font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Email Address</span>
-                <strong style="font-size:14px; color:#0f172a;">{{ technician.email }}</strong>
+                <strong style="font-size:14px; color:#0f172a;">{{ technician.common_email|default:technician.email }}</strong>
             </div>
 
             <div style="background:#f8fafc; padding:16px; border-radius:10px; border:1px solid #e2e8f0;">
@@ -90,7 +90,7 @@
                 {% for req in requests %}
                 <tr>
                     <td><strong style="color:#2563eb;">#REQ-{{ req.id }}</strong></td>
-                    <td><strong>{{ req.customer_username }}</strong></td>
+                    <td><strong>{{ req.customer_display_name|default:req.customer_username }}</strong></td>
                     <td>
                         {% if req.status == 'Completed' %}
                             <span class="badge badge-success">Completed</span>
@@ -156,7 +156,7 @@
                 {% for rating in ratings %}
                 <tr>
                     <td style="color:#64748b;">{{ rating.created_at|date:"M d, Y" }}</td>
-                    <td>{{ rating.customer.username }}</td>
+                    <td>{{ rating.customer.display_name|default:rating.customer.username }}</td>
                     <td><strong style="color:#a16207;">⭐ {{ rating.rating }} / 5</strong></td>
                     <td style="max-width:300px; white-space:normal; font-size:13px;">{{ rating.review_text|default:"-" }}</td>
                 </tr>

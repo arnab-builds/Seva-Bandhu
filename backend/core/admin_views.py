@@ -83,7 +83,7 @@ def admin_dashboard_view(request):
 @superuser_required
 def admin_customers_list(request):
     query = request.GET.get('q', '')
-    customers = customer_signup.objects.all().order_by('-id')
+    customers = customer_signup.objects.all().select_related('user').order_by('-id')
     
     if query:
         customers = customers.filter(
@@ -124,7 +124,7 @@ def admin_customer_deactivate(request, id):
 @superuser_required
 def admin_technicians_list(request):
     query = request.GET.get('q', '')
-    technicians = Technician_signup.objects.all().order_by('-id')
+    technicians = Technician_signup.objects.all().select_related('user').order_by('-id')
     
     if query:
         technicians = technicians.filter(
@@ -334,7 +334,7 @@ def admin_support_tickets_list(request):
     type_filter = request.GET.get('type', '')
     status_filter = request.GET.get('status', '')
     
-    tickets = SupportTicket.objects.all().select_related('customer').order_by('-created_at')
+    tickets = SupportTicket.objects.all().select_related('customer__user', 'related_technician__user').order_by('-created_at')
     
     if query:
         tickets = tickets.filter(customer__username__icontains=query) | tickets.filter(technician_name__icontains=query)

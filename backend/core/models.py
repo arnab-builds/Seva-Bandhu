@@ -45,6 +45,16 @@ class customer_signup(models.Model):
     def __str__(self):
         return self.username
 
+    @property
+    def display_name(self):
+        from core.identity import get_customer_display_name
+        return get_customer_display_name(customer=self)
+
+    @property
+    def common_email(self):
+        from core.identity import get_user_common_email
+        return get_user_common_email(profile=self)
+
 class Technician_signup(models.Model):
     SERVICE_CATEGORIES = [
         ('AC Repair', 'AC Repair'),
@@ -71,6 +81,16 @@ class Technician_signup(models.Model):
 
     def __str__(self):
         return self.username
+
+    @property
+    def display_name(self):
+        from core.identity import get_technician_display_name
+        return get_technician_display_name(technician=self)
+
+    @property
+    def common_email(self):
+        from core.identity import get_user_common_email
+        return get_user_common_email(profile=self)
 
     @property
     def raw_average_rating(self):
@@ -203,6 +223,16 @@ class ServiceRequest(models.Model):
             return None
         return Technician_signup.objects.filter(username=self.technician_username).select_related('user').first()
 
+    @property
+    def customer_display_name(self):
+        from core.identity import get_customer_display_name
+        return get_customer_display_name(service=self)
+
+    @property
+    def technician_display_name(self):
+        from core.identity import get_technician_display_name
+        return get_technician_display_name(service=self)
+
     class Meta:
         db_table = 'ServiceRequest'
 
@@ -279,6 +309,22 @@ class SupportTicket(models.Model):
 
     def __str__(self):
         return f"{self.ticket_type} - {self.customer.username} ({self.status})"
+
+    @property
+    def customer_display_name(self):
+        from core.identity import get_customer_display_name
+        if self.customer:
+            return get_customer_display_name(customer=self.customer)
+        return "Valued Customer"
+
+    @property
+    def technician_display_name(self):
+        from core.identity import get_technician_display_name
+        if self.related_technician:
+            return get_technician_display_name(technician=self.related_technician)
+        if self.technician_name:
+            return self.technician_name
+        return ""
 
 class WalletTransaction(models.Model):
     TRANSACTION_TYPES = (

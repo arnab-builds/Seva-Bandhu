@@ -478,9 +478,9 @@
                 <div>
                     {% if technician %}
                     <div class="tech-info-pill">
-                        <div class="tech-avatar-mini">{{ technician.username|upper|first }}</div>
+                        <div class="tech-avatar-mini">{{ technician.display_name|default:technician.username|upper|first }}</div>
                         <div style="font-size:13px;">
-                            <strong>Technician: {{ technician.username }} <span style="color:#eab308; margin-left:6px; font-weight:700;">⭐ {{ technician.final_rating }} / 5</span></strong>
+                            <strong>Technician: {{ technician.display_name|default:technician.username }} <span style="color:#eab308; margin-left:6px; font-weight:700;">⭐ {{ technician.final_rating }} / 5</span></strong>
                             <span style="color:#64748b; display:block; font-size:11.5px;">Contact: {{ technician.contact }}</span>
                         </div>
                     </div>
@@ -518,11 +518,11 @@
                                 ⭐ {{ rating.rating }} / 5 Rated
                             </span>
                         {% else %}
-                            <button type="button" onclick="openRatingModal('{{ request.id }}', '{{ technician.username }}')" class="btn-card-action" style="background:#eab308; color:#ffffff; border:none; cursor:pointer;">
+                            <button type="button" onclick="openRatingModal('{{ request.id }}', '{{ technician.display_name|default:technician.username|escapejs }}')" class="btn-card-action" style="background:#eab308; color:#ffffff; border:none; cursor:pointer;">
                                 ⭐ Rate Technician
                             </button>
                         {% endif %}
-                        <button type="button" onclick="openComplaintModal('{{ request.id }}', '{{ technician.username }}')" class="btn-card-action" style="background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; cursor:pointer;">
+                        <button type="button" onclick="openComplaintModal('{{ request.id }}', '{{ technician.display_name|default:technician.username|escapejs }}')" class="btn-card-action" style="background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; cursor:pointer;">
                             Report an Issue
                         </button>
                     {% endif %}

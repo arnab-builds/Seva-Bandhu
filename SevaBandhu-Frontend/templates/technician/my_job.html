@@ -248,7 +248,7 @@
 
                     <div class="job-info-item">
                         <span class="job-info-label">Customer Name</span>
-                        <span class="job-info-val">{{ job.customer_username }}</span>
+                        <span class="job-info-val">{{ job.customer_display_name|default:job.customer_username }}</span>
                     </div>
 
                     <div class="job-info-item">

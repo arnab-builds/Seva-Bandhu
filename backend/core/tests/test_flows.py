@@ -281,4 +281,84 @@ class SecureLogoutFlowTests(TestCase):
         self.assertEqual(resp_fallback.status_code, 200)
         self.assertContains(resp_fallback, f"Booking Account: {self.cust.username}")
 
+    def test_15_centralized_identity_helpers_and_model_properties(self):
+        from core.identity import get_customer_display_name, get_technician_display_name, get_user_common_email
+        from core.models import ServiceRequest
+
+        # Setup user with dual customer & technician profiles
+        self.cust_user.first_name = "Jane"
+        self.cust_user.last_name = "Doe"
+        self.cust_user.email = "jane.primary@example.com"
+        self.cust_user.save()
+
+        # Customer display name and email properties
+        self.assertEqual(self.cust.display_name, "Jane Doe")
+        self.assertEqual(self.cust.common_email, "jane.primary@example.com")
+        self.assertEqual(get_customer_display_name(customer=self.cust), "Jane Doe")
+        self.assertEqual(get_user_common_email(profile=self.cust), "jane.primary@example.com")
+
+        # Technician display name and email properties
+        self.tech_user.first_name = "Ramu"
+        self.tech_user.last_name = "Singh"
+        self.tech_user.email = "ramu.primary@example.com"
+        self.tech_user.save()
+
+        self.assertEqual(self.tech.display_name, "Ramu Singh")
+        self.assertEqual(self.tech.common_email, "ramu.primary@example.com")
+        self.assertEqual(get_technician_display_name(technician=self.tech), "Ramu Singh")
+
+        # ServiceRequest display name properties
+        from datetime import date
+        from core.models import ServiceDetail, ServiceAddress
+        sd = ServiceDetail.objects.create(
+            service_category="Plumbing",
+            problem_description="Fix leak",
+            priority="Medium",
+            preferred_service_date=date.today(),
+            preferred_time_slot="10:00 AM - 12:00 PM",
+            contact_number="9876543210"
+        )
+        sa = ServiceAddress.objects.create(house_flat_no="1", street_area="St", city="City", pincode="700001")
+        sr = ServiceRequest.objects.create(
+            customer_username=self.cust.username,
+            technician_username=self.tech.username,
+            service_detail=sd,
+            service_address=sa,
+            status='Assigned'
+        )
+        self.assertEqual(sr.customer_display_name, "Jane Doe")
+        self.assertEqual(sr.technician_display_name, "Ramu Singh")
+
+        # Fallback when User first_name/last_name is blank
+        self.cust_user.first_name = ""
+        self.cust_user.last_name = ""
+        self.cust_user.save()
+        self.assertEqual(self.cust.display_name, self.cust.username)
+        self.assertEqual(sr.customer_display_name, self.cust.username)
+
+    def test_16_dashboards_render_display_names(self):
+        self.cust_user.first_name = "Alice"
+        self.cust_user.last_name = "Wonder"
+        self.cust_user.save()
+
+        self.client.force_login(self.cust_user)
+        # Customer Dashboard
+        resp_cust = self.client.get(reverse('customer_dashboard'))
+        self.assertEqual(resp_cust.status_code, 200)
+        self.assertContains(resp_cust, "Welcome back, Alice Wonder")
+
+        # Customer Account
+        resp_acc = self.client.get(reverse('customer_account'))
+        self.assertEqual(resp_acc.status_code, 200)
+        self.assertContains(resp_acc, "Alice Wonder")
+
+        # Technician Dashboard
+        self.tech_user.first_name = "Bob"
+        self.tech_user.last_name = "Builder"
+        self.tech_user.save()
+        self.client.force_login(self.tech_user)
+        resp_tech = self.client.get(reverse('technician_dashboard'))
+        self.assertEqual(resp_tech.status_code, 200)
+        self.assertContains(resp_tech, "Welcome back, <strong>Bob Builder</strong>")
+
 

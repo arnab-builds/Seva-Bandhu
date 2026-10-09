@@ -29,7 +29,7 @@
                     <td><strong style="color:#2563eb;">#NTF-{{ notif.id }}</strong></td>
                     <td>
                         <a href="{% url 'admin_technician_detail' notif.technician.id %}" style="color: #7c3aed; text-decoration: none; font-weight: 700;">
-                            {{ notif.technician.username }}
+                            {{ notif.technician.display_name|default:notif.technician.username }}
                         </a>
                     </td>
                     <td><strong style="color:#0f172a;">{{ notif.title }}</strong></td>

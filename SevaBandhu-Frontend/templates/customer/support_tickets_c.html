@@ -203,9 +203,9 @@
                         <strong style="color:#475569;">Booking ID:</strong> #{{ ticket.service_request_id }}
                     </div>
                     {% endif %}
-                    {% if ticket.technician_name %}
+                    {% if ticket.technician_display_name or ticket.technician_name %}
                     <div>
-                        <strong style="color:#475569;">Technician:</strong> {{ ticket.technician_name }}
+                        <strong style="color:#475569;">Technician:</strong> {{ ticket.technician_display_name|default:ticket.technician_name }}
                     </div>
                     {% endif %}
                 </div>

@@ -42,16 +42,16 @@
                     <td>
                         {% if req.customer %}
                             <a href="{% url 'admin_customer_detail' req.customer.id %}" style="color: #0f172a; text-decoration: none; font-weight: 600;">
-                                {{ req.customer_username }}
+                                {{ req.customer_display_name|default:req.customer_username }}
                             </a>
                         {% else %}
-                            <span style="font-weight: 600;">{{ req.customer_username }}</span>
+                            <span style="font-weight: 600;">{{ req.customer_display_name|default:req.customer_username }}</span>
                         {% endif %}
                     </td>
                     <td>
                         {% if req.technician %}
                             <a href="{% url 'admin_technician_detail' req.technician.id %}" style="color: #7c3aed; text-decoration: none; font-weight: 600;">
-                                {{ req.technician_username }}
+                                {{ req.technician_display_name|default:req.technician_username }}
                             </a>
                         {% else %}
                             <span style="color: #94a3b8; font-size:12.5px;">Unassigned</span>
