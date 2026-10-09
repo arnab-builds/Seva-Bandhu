@@ -74,9 +74,12 @@ class ServiceRequestAdmin(admin.ModelAdmin):
     get_service_type.short_description = 'Service Type'
     
     def get_available_technicians(self, obj):
-        technicians = Technician_signup.objects.values_list('username', flat=True)
+        tech_qs = Technician_signup.objects.all()
+        if obj and obj.customer:
+            tech_qs = tech_qs.exclude(user_id=obj.customer.user_id)
+        technicians = tech_qs.values_list('username', flat=True)
         tech_list = ', '.join(technicians)
-        return f"Available: {tech_list if tech_list else 'No technicians registered'}"
+        return f"Available: {tech_list if tech_list else 'No other technicians registered'}"
     get_available_technicians.short_description = 'Available Technicians (Type username above)'
 
 @admin.register(Service)

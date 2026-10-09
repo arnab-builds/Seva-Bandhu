@@ -600,7 +600,7 @@
                     </div>
 
                     <div class="actions-footer-row">
-                        <button type="submit" id="submitBtn" class="btn-submit-request">
+                        <button type="submit" id="submitBtn" class="btn-submit-request" {% if self_booking_blocked %}disabled style="opacity: 0.5; cursor: not-allowed;" title="Self-booking is not allowed"{% endif %}>
                             Submit Service Request →
                         </button>
                     </div>

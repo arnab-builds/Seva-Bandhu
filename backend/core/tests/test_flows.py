@@ -362,3 +362,208 @@ class SecureLogoutFlowTests(TestCase):
         self.assertContains(resp_tech, "Welcome back, <strong>Bob Builder</strong>")
 
 
+class SelfBookingPreventionTests(TestCase):
+    def setUp(self):
+        from core.models import Service, Technician_signup, customer_signup
+        # Services
+        self.service_ac = Service.objects.create(name="AC Repair", price=500, is_enabled=True)
+        self.service_plumbing = Service.objects.create(name="Plumbing", price=400, is_enabled=True)
+
+        # Dual user: has both Customer and Technician profiles (AC Repair)
+        self.dual_user = User.objects.create_user(
+            username="dual_ramu", email="ramu@example.com", password="password123",
+            first_name="Ramu", last_name="Singh"
+        )
+        self.dual_cust = customer_signup.objects.create(
+            user=self.dual_user, username="dual_ramu", email="ramu@example.com",
+            contact="9876543210", email_verified=True, phone_verified=True
+        )
+        self.dual_tech = Technician_signup.objects.create(
+            user=self.dual_user, username="dual_ramu", email="ramu@example.com",
+            contact="9876543210", service_category="AC Repair", is_available=True,
+            profile_completed=True
+        )
+
+        # Pure customer
+        self.other_user = User.objects.create_user(
+            username="other_cust", email="other@example.com", password="password123",
+            first_name="Other", last_name="Customer"
+        )
+        self.other_cust = customer_signup.objects.create(
+            user=self.other_user, username="other_cust", email="other@example.com",
+            contact="9123456780", email_verified=True, phone_verified=True
+        )
+
+        # Other technician (AC Repair)
+        self.other_tech_user = User.objects.create_user(
+            username="tech_shyam", email="shyam@example.com", password="password123",
+            first_name="Shyam", last_name="Kumar"
+        )
+        self.other_tech = Technician_signup.objects.create(
+            user=self.other_tech_user, username="tech_shyam", email="shyam@example.com",
+            contact="9988776655", service_category="AC Repair", is_available=False,
+            profile_completed=True
+        )
+
+    def test_01_self_booking_rejected_when_no_other_technician_available(self):
+        # other_tech is available=False, so only dual_user is offering AC Repair
+        self.client.force_login(self.dual_user)
+
+        # GET customer_create_request with service=AC Repair displays clear message and disables button
+        resp_get = self.client.get(reverse('customer_create_request') + '?service=AC Repair')
+        self.assertEqual(resp_get.status_code, 200)
+        self.assertContains(resp_get, "You cannot book your own service. No other eligible technician is currently available.")
+        self.assertTrue(resp_get.context.get('self_booking_blocked'))
+
+        # POST customer_create_request is rejected with 400 and clear error message
+        post_data = {
+            'service_category': 'AC Repair',
+            'problem_description': 'AC not cooling',
+            'priority': 'Medium',
+            'preferred_service_date': '2026-10-15',
+            'preferred_time_slot': '09:00 AM – 12:00 PM',
+            'contact_number': '9876543210',
+            'payment_method': 'offline',
+            'house_flat_no': 'Flat 101',
+            'street_area': 'Main Road',
+            'city': 'Kolkata',
+            'pincode': '700001',
+        }
+        resp_post = self.client.post(reverse('customer_create_request'), post_data)
+        self.assertEqual(resp_post.status_code, 400)
+        self.assertContains(resp_post, "You cannot book your own service. No other eligible technician is currently available.", status_code=400)
+        from core.models import ServiceRequest
+        self.assertFalse(ServiceRequest.objects.filter(customer_username=self.dual_cust.username).exists())
+
+    def test_02_service_selection_marks_own_only_service_unavailable(self):
+        # Dual user visits service selection
+        self.client.force_login(self.dual_user)
+        resp = self.client.get(reverse('service_selection'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Your Service (Unavailable)")
+
+    def test_03_attempted_backend_bypass_on_accept_request_rejected(self):
+        from core.models import ServiceDetail, ServiceAddress, ServiceRequest
+        # Create a pending service request by dual_user (e.g. for Plumbing)
+        sd = ServiceDetail.objects.create(
+            service_category="Plumbing", problem_description="Leak", priority="Low",
+            preferred_service_date="2026-10-15", preferred_time_slot="09:00 AM – 12:00 PM",
+            contact_number="9876543210"
+        )
+        sa = ServiceAddress.objects.create(
+            house_flat_no="1", street_area="St", city="Kolkata", pincode="700001"
+        )
+        sr = ServiceRequest.objects.create(
+            customer_username=self.dual_cust.username,
+            service_detail=sd,
+            service_address=sa,
+            status='Pending'
+        )
+
+        # dual_user attempts to accept their own service request via accept_request endpoint
+        self.client.force_login(self.dual_user)
+        resp = self.client.post(reverse('accept_request', args=[sr.id]))
+        self.assertEqual(resp.status_code, 403)
+        self.assertJSONEqual(resp.content, {
+            'status': 'failed',
+            'message': 'You cannot accept your own service request.'
+        })
+
+        sr.refresh_from_db()
+        self.assertEqual(sr.status, 'Pending')
+        self.assertIsNone(sr.technician_username)
+
+    def test_04_model_level_validation_prevents_self_assignment(self):
+        from core.models import ServiceDetail, ServiceAddress, ServiceRequest
+        sd = ServiceDetail.objects.create(
+            service_category="AC Repair", problem_description="Cooling", priority="Medium",
+            preferred_service_date="2026-10-15", preferred_time_slot="09:00 AM – 12:00 PM",
+            contact_number="9876543210"
+        )
+        sa = ServiceAddress.objects.create(
+            house_flat_no="1", street_area="St", city="Kolkata", pincode="700001"
+        )
+        sr = ServiceRequest(
+            customer_username=self.dual_cust.username,
+            technician_username=self.dual_tech.username,
+            service_detail=sd,
+            service_address=sa,
+            status='Assigned'
+        )
+        from django.core.exceptions import ValidationError
+        with self.assertRaises(ValidationError):
+            sr.clean()
+        with self.assertRaises(ValidationError):
+            sr.save()
+
+    def test_05_dual_user_can_book_when_another_technician_is_available(self):
+        from core.models import ServiceRequest, TechnicianNotification
+        # Make other_tech available
+        self.other_tech.is_available = True
+        self.other_tech.save()
+
+        self.client.force_login(self.dual_user)
+        post_data = {
+            'service_category': 'AC Repair',
+            'problem_description': 'AC not cooling',
+            'priority': 'Medium',
+            'preferred_service_date': '2026-10-15',
+            'preferred_time_slot': '09:00 AM – 12:00 PM',
+            'contact_number': '9876543210',
+            'payment_method': 'offline',
+            'house_flat_no': 'Flat 101',
+            'street_area': 'Main Road',
+            'city': 'Kolkata',
+            'pincode': '700001',
+        }
+        resp = self.client.post(reverse('customer_create_request'), post_data)
+        self.assertRedirects(resp, reverse('customer_my_requests'))
+
+        sr = ServiceRequest.objects.filter(customer_username=self.dual_cust.username).first()
+        self.assertIsNotNone(sr)
+        self.assertEqual(sr.status, 'Pending')
+
+        # Check notifications: ONLY other_tech received notification, dual_tech was excluded!
+        self.assertEqual(TechnicianNotification.objects.filter(technician=self.other_tech, service_request=sr).count(), 1)
+        self.assertEqual(TechnicianNotification.objects.filter(technician=self.dual_tech, service_request=sr).count(), 0)
+
+        # other_tech can accept the request successfully
+        self.client.force_login(self.other_tech_user)
+        resp_accept = self.client.post(reverse('accept_request', args=[sr.id]))
+        self.assertEqual(resp_accept.status_code, 200)
+        self.assertJSONEqual(resp_accept.content, {'status': 'success'})
+
+        sr.refresh_from_db()
+        self.assertEqual(sr.status, 'Assigned')
+        self.assertEqual(sr.technician_username, self.other_tech.username)
+
+    def test_06_legitimate_booking_by_other_customer_allows_dual_user_to_accept(self):
+        from core.models import ServiceDetail, ServiceAddress, ServiceRequest
+        # A different customer books AC Repair
+        sd = ServiceDetail.objects.create(
+            service_category="AC Repair", problem_description="Fix AC", priority="High",
+            preferred_service_date="2026-10-16", preferred_time_slot="12:00 PM – 03:00 PM",
+            contact_number="9123456780"
+        )
+        sa = ServiceAddress.objects.create(
+            house_flat_no="2B", street_area="Lake Rd", city="Kolkata", pincode="700029"
+        )
+        sr = ServiceRequest.objects.create(
+            customer_username=self.other_cust.username,
+            service_detail=sd,
+            service_address=sa,
+            status='Pending'
+        )
+
+        # dual_user acting as technician can accept legitimate booking from another customer
+        self.client.force_login(self.dual_user)
+        resp = self.client.post(reverse('accept_request', args=[sr.id]))
+        self.assertEqual(resp_accept_code := resp.status_code, 200)
+        self.assertJSONEqual(resp.content, {'status': 'success'})
+
+        sr.refresh_from_db()
+        self.assertEqual(sr.status, 'Assigned')
+        self.assertEqual(sr.technician_username, self.dual_tech.username)
+
+
+

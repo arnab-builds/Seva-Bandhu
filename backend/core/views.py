@@ -445,6 +445,19 @@ def customer_dashboard(request):
     from core.models import RecommendationLog
     recommended_services = get_recommendations(customer.username, max_results=3)
     
+    if recommended_services and request.user.is_authenticated:
+        user_tech = Technician_signup.objects.filter(user_id=request.user.id).first()
+        if user_tech and user_tech.service_category:
+            other_tech_available = Technician_signup.objects.filter(
+                service_category__iexact=user_tech.service_category,
+                is_available=True
+            ).exclude(user_id=request.user.id).exists()
+            if not other_tech_available:
+                recommended_services = [
+                    rec for rec in recommended_services
+                    if rec['service'].name.lower() != user_tech.service_category.lower()
+                ]
+
     # Log impressions in bulk
     if recommended_services:
         RecommendationLog.objects.bulk_create([
@@ -651,10 +664,46 @@ def customer_create_request(request):
                     else:
                         ml_context_msg = "We noticed you're interested in this service. Book now and save!"
 
+    self_booking_blocked = False
+    self_booking_error = None
+    if selected_service:
+        is_own_service = Technician_signup.objects.filter(
+            user_id=request.user.id,
+            service_category__iexact=selected_service
+        ).exists()
+        other_eligible = Technician_signup.objects.filter(
+            service_category__iexact=selected_service,
+            is_available=True
+        ).exclude(user_id=request.user.id).exists()
+        if is_own_service and not other_eligible:
+            self_booking_blocked = True
+            self_booking_error = "You cannot book your own service. No other eligible technician is currently available."
+
     if request.method == "POST":
+        service_category = request.POST.get('service_category', '').strip()
+
+        # [SELF-BOOKING PREVENTION]
+        is_own_service = Technician_signup.objects.filter(
+            user_id=request.user.id,
+            service_category__iexact=service_category
+        ).exists()
+        other_eligible = Technician_signup.objects.filter(
+            service_category__iexact=service_category,
+            is_available=True
+        ).exclude(user_id=request.user.id).exists()
+
+        if is_own_service and not other_eligible:
+            customer_display_name = get_customer_display_name(customer=customer)
+            return render(request, 'customer/create_request.html', {
+                'customer': customer,
+                'customer_display_name': customer_display_name,
+                'selected_service': service_category,
+                'self_booking_blocked': True,
+                'error': "You cannot book your own service. No other eligible technician is currently available."
+            }, status=400)
+
         try:
             # Get form data for ServiceDetail
-            service_category = request.POST.get('service_category')
             problem_description = request.POST.get('problem_description')
             priority = request.POST.get('priority')
             preferred_service_date = request.POST.get('preferred_service_date')
@@ -776,10 +825,10 @@ def customer_create_request(request):
                 request.session['smart_offer_intent'] = intent_log
                 request.session.modified = True
 
-            # [FIRE] CREATE NOTIFICATIONS FOR MATCHING TECHNICIANS
+            # [FIRE] CREATE NOTIFICATIONS FOR MATCHING TECHNICIANS (EXCLUDING CUSTOMER'S OWN TECHNICIAN PROFILE)
             matching_technicians = Technician_signup.objects.filter(
                 service_category__iexact=service_detail.service_category
-            )
+            ).exclude(user_id=request.user.id)
 
             for technician in matching_technicians:
                 TechnicianNotification.objects.create(
@@ -829,7 +878,9 @@ def customer_create_request(request):
         'customer_display_name': customer_display_name,
         'selected_service': selected_service,
         'smart_offer': smart_offer,
-        'ml_context_msg': ml_context_msg
+        'ml_context_msg': ml_context_msg,
+        'self_booking_blocked': self_booking_blocked,
+        'error': self_booking_error
     })
 
 
@@ -1135,13 +1186,22 @@ def service_selection(request):
     service_list = []
 
     for service in services:
-        # [FIRE] check if technician available
-        available = Technician_signup.objects.filter(
+        # Check if other technician available (excluding current user's technician profile)
+        tech_query = Technician_signup.objects.filter(
             service_category__iexact=service.name,
             is_available=True
-        ).exists()
+        )
+        is_own_service = False
+        if request.user.is_authenticated:
+            tech_query = tech_query.exclude(user_id=request.user.id)
+            is_own_service = Technician_signup.objects.filter(
+                user_id=request.user.id,
+                service_category__iexact=service.name
+            ).exists()
 
-        # [FIRE] final decision
+        available = tech_query.exists()
+
+        # final decision
         is_active = service.is_enabled and available
         
         rating_info = service_ratings.get(service.name, {
@@ -1158,6 +1218,7 @@ def service_selection(request):
             'image': service.image,
             'price': service.price,
             'is_active': is_active,
+            'is_own_service': is_own_service,
             'rating_info': rating_info
         })
 
@@ -1195,6 +1256,14 @@ def accept_request(request, id):
         # [FIRE] BLOCK if request already taken
         if service_request.status != 'Pending':
             return JsonResponse({'status': 'failed', 'message': 'Already taken'})
+
+        # [FIRE] SELF-ASSIGNMENT / SELF-BOOKING PREVENTION
+        customer = service_request.customer
+        if customer and customer.user_id == technician.user_id:
+            return JsonResponse({
+                'status': 'failed',
+                'message': 'You cannot accept your own service request.'
+            }, status=403)
 
         # [FIRE] TIME CONFLICT CHECK (MAIN FIX)
         conflict = ServiceRequest.objects.filter(

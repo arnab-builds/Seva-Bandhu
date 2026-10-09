@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 
 
 class customer_signup(models.Model):
@@ -232,6 +233,18 @@ class ServiceRequest(models.Model):
     def technician_display_name(self):
         from core.identity import get_technician_display_name
         return get_technician_display_name(service=self)
+
+    def clean(self):
+        super().clean()
+        if self.customer_username and self.technician_username:
+            cust = self.customer
+            tech = self.technician
+            if cust and tech and cust.user_id == tech.user_id:
+                raise ValidationError("A user cannot be both the customer and assigned technician on the same service request.")
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'ServiceRequest'

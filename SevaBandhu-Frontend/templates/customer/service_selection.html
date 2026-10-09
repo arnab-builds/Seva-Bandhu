@@ -456,7 +456,7 @@
                 </div>
                 {% else %}
                 <div class="status-badge-tag badge-unavailable">
-                    Unavailable
+                    {% if service.is_own_service %}Your Service (Unavailable){% else %}Unavailable{% endif %}
                 </div>
                 {% endif %}
 
