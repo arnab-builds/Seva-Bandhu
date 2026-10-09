@@ -39,6 +39,66 @@ class HealthEndpointsTests(TestCase):
         r2 = self.client.post(reverse('health_check_db'))
         self.assertEqual(r2.status_code, 405)
 
+    def test_health_check_logging_success(self):
+        url = reverse('health_check')
+        user_agent = 'SevaBandhu-HealthMonitor/1.0'
+        with self.assertLogs('core.health', level='INFO') as log_ctx:
+            response = self.client.get(url, HTTP_USER_AGENT=user_agent)
+            self.assertEqual(response.status_code, 200)
+
+        logs = " ".join(log_ctx.output)
+        self.assertIn('[HEALTH]', logs)
+        self.assertIn('status=200', logs)
+        self.assertIn('outcome=ok', logs)
+        self.assertIn(f"user_agent='{user_agent}'", logs)
+
+    def test_health_check_db_logging_success(self):
+        url = reverse('health_check_db')
+        user_agent = 'SevaBandhu-HealthMonitor/1.0'
+        with self.assertLogs('core.health', level='INFO') as log_ctx:
+            response = self.client.get(url, HTTP_USER_AGENT=user_agent)
+            self.assertEqual(response.status_code, 200)
+
+        logs = " ".join(log_ctx.output)
+        self.assertIn('[HEALTH_DB]', logs)
+        self.assertIn('status=200', logs)
+        self.assertIn('db_outcome=ok', logs)
+        self.assertIn(f"user_agent='{user_agent}'", logs)
+
+    def test_health_check_db_logging_failure_no_secret_leak(self):
+        url = reverse('health_check_db')
+        user_agent = 'SevaBandhu-HealthMonitor/1.0'
+        sensitive_error_msg = "postgres://user:supersecretpass@db.render.internal:5432/sevabandhu"
+        with patch('django.db.connection.cursor', side_effect=Exception(sensitive_error_msg)):
+            with self.assertLogs('core.health', level='ERROR') as log_ctx:
+                response = self.client.get(url, HTTP_USER_AGENT=user_agent)
+                self.assertEqual(response.status_code, 503)
+
+        logs = " ".join(log_ctx.output)
+        self.assertIn('[HEALTH_DB]', logs)
+        self.assertIn('status=503', logs)
+        self.assertIn('db_outcome=failed', logs)
+        self.assertIn('error_type=Exception', logs)
+        self.assertIn(f"user_agent='{user_agent}'", logs)
+        # Verify no credentials or connection string leaked into the logs or response
+        self.assertNotIn('supersecretpass', logs)
+        self.assertNotIn('postgres://', logs)
+        self.assertNotIn('supersecretpass', response.content.decode('utf-8'))
+        self.assertNotIn('postgres://', response.content.decode('utf-8'))
+
+    def test_health_check_logging_method_not_allowed(self):
+        with self.assertLogs('core.health', level='WARNING') as log_ctx:
+            r1 = self.client.post(reverse('health_check'), HTTP_USER_AGENT='TestAgent/1.0')
+            self.assertEqual(r1.status_code, 405)
+
+            r2 = self.client.post(reverse('health_check_db'), HTTP_USER_AGENT='TestAgent/1.0')
+            self.assertEqual(r2.status_code, 405)
+
+        logs = " ".join(log_ctx.output)
+        self.assertIn('status=405', logs)
+        self.assertIn("detail='Method not allowed'", logs)
+        self.assertIn("user_agent='TestAgent/1.0'", logs)
+
 
 class SettingsParsingTests(TestCase):
     def test_allowed_hosts_parsing(self):

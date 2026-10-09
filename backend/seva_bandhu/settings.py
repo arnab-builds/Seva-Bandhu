@@ -182,3 +182,29 @@ SMART_OFFER_VIEW_THRESHOLD = 3
 SMART_OFFER_WINDOW_HOURS = 24
 SMART_OFFER_COOLDOWN_HOURS = 24
 
+# --- LOGGING CONFIGURATION ---
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "[{asctime}] {levelname} [{name}] {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "core": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}
+
+

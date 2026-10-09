@@ -31,6 +31,9 @@ import uuid
 import hashlib
 import secrets
 import time
+import logging
+
+health_logger = logging.getLogger("core.health")
 
 from .models import (
     TechnicianNotification,
@@ -1545,21 +1548,64 @@ def technician_navigation(request, id):
 
 
 def health_check(request):
-    if request.method != "GET":
+    utc_timestamp = timezone.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+    method = request.method
+    path = request.path
+    raw_user_agent = request.META.get("HTTP_USER_AGENT", "Unknown")
+    user_agent = raw_user_agent.replace("\r", "").replace("\n", "").strip()
+
+    if method != "GET":
+        health_logger.warning(
+            f"[HEALTH] timestamp={utc_timestamp} method={method} path={path} "
+            f"user_agent='{user_agent}' status=405 detail='Method not allowed'"
+        )
         return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
+
+    health_logger.info(
+        f"[HEALTH] timestamp={utc_timestamp} method={method} path={path} "
+        f"user_agent='{user_agent}' status=200 outcome=ok"
+    )
     return JsonResponse({"status": "ok"})
 
 
 def health_check_db(request):
-    if request.method != "GET":
+    utc_timestamp = timezone.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+    method = request.method
+    path = request.path
+    raw_user_agent = request.META.get("HTTP_USER_AGENT", "Unknown")
+    user_agent = raw_user_agent.replace("\r", "").replace("\n", "").strip()
+
+    if method != "GET":
+        status_code = 405
+        db_outcome = "skipped"
+        health_logger.warning(
+            f"[HEALTH_DB] timestamp={utc_timestamp} method={method} path={path} "
+            f"user_agent='{user_agent}' status={status_code} db_outcome={db_outcome} "
+            f"detail='Method not allowed'"
+        )
         return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
+
     try:
         from django.db import connection
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
             cursor.fetchone()
+        status_code = 200
+        db_outcome = "ok"
+        health_logger.info(
+            f"[HEALTH_DB] timestamp={utc_timestamp} method={method} path={path} "
+            f"user_agent='{user_agent}' status={status_code} db_outcome={db_outcome}"
+        )
         return JsonResponse({"status": "ok", "database": "ok"})
-    except Exception:
+    except Exception as exc:
+        status_code = 503
+        db_outcome = "failed"
+        err_type = type(exc).__name__
+        health_logger.error(
+            f"[HEALTH_DB] timestamp={utc_timestamp} method={method} path={path} "
+            f"user_agent='{user_agent}' status={status_code} db_outcome={db_outcome} "
+            f"error_type={err_type}"
+        )
         return JsonResponse({"status": "error", "database": "unavailable"}, status=503)
 
 
